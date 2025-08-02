@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario</title>
+</head>
+
+<body>
+    
+    <!--Navigation bar-->
+    <div class="header">
+        <nav>
+            <ul>
+                <li><a href="#" class="active">Calendario</a></li>
+                <li><a href="#">Habitaciones</a></li>
+                <li><a href="#">Usuarios</a></li>
+            </ul>
+        </nav>
+    </div>
+    
+    <!--Toolbar-->
+    <div class="toolbar">
+        <button id="filter">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 5h18M6 10h12M10 15h4" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+            </svg>
+            Filtros
+        </button>
+        <div class="search-container">
+            <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7" stroke="#4F4F4F" stroke-width="2" fill="none"/>
+                <line x1="16" y1="16" x2="21" y2="21" stroke="#4F4F4F" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="text" id="search" placeholder="Buscar...">
+        </div>
+        <button id="gocastillo">Castillo</button>
+        <button id="gorestaurante">Restaurante</button>
+        <button id="gopiso">Piso</button>
+        <button id="gocvilanova">Vilanova</button>
+    </div>
+
+    <!--Navigation month-->
+    <div class="navigation-month">
+        <nav>
+            <ul id="month-list">
+                <li><a href="#" onclick="showMonth('enero')">Enero</a></li>
+                <li><a href="#" onclick="showMonth('febrero')">Febrero</a></li>
+                <li><a href="#" onclick="showMonth('marzo')">Marzo</a></li>
+                <li><a href="#" onclick="showMonth('abril')">Abril</a></li>
+                <li><a href="#" onclick="showMonth('mayo')">Mayo</a></li>
+                <li><a href="#" onclick="showMonth('junio')">Junio</a></li>
+                <li><a href="#" onclick="showMonth('julio')">Julio</a></li>
+                <li><a href="#" onclick="showMonth('agosto')">Agosto</a></li>
+                <li><a href="#" onclick="showMonth('septiembre')">Septiembre</a></li>
+                <li><a href="#" onclick="showMonth('octubre')">Octubre</a></li>
+                <li><a href="#" onclick="showMonth('noviembre')">Noviembre</a></li>
+                <li><a href="#" onclick="showMonth('diciembre')">Diciembre</a></li>
+            </ul>
+        </nav>
+    </div>
+
+
+    <!-- Meses como sliders -->
+    <div id="meses">
+        <div class="mes" id="enero">Contenido de Enero</div>
+        <div class="mes" id="febrero" style="display:none;">Contenido de Febrero</div>
+        <div class="mes" id="marzo" style="display:none;">Contenido de Marzo</div>
+        <div class="mes" id="abril" style="display:none;">Contenido de Abril</div>
+        <div class="mes" id="mayo" style="display:none;">Contenido de Mayo</div>
+        <div class="mes" id="junio" style="display:none;">Contenido de Junio</div>
+        <div class="mes" id="julio" style="display:none;">Contenido de Julio</div>
+        <div class="mes" id="agosto" style="display:none;">Contenido de Agosto</div>
+        <div class="mes" id="septiembre" style="display:none;">Contenido de Septiembre</div>
+        <div class="mes" id="octubre" style="display:none;">Contenido de Octubre</div>
+        <div class="mes" id="noviembre" style="display:none;">Contenido de Noviembre</div>
+        <div class="mes" id="diciembre" style="display:none;">Contenido de Diciembre</div>
+    </div>
+
+    <!-- Funcionamiento y animaciones de la página-->
+    <script>
+        function showMonth(mesId) {
+            // Oculta todos los meses
+            document.querySelectorAll('.mes').forEach(function(div) {
+                div.style.display = 'none';
+            });
+            // Muestra el mes seleccionado
+            document.getElementById(mesId).style.display = 'block';
+        }
+
+        document.querySelectorAll('.toolbar button:not(#filter)').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toolbar button:not(#filter)').forEach(b => b.classList.remove('active-btn'));
+                this.classList.add('active-btn');
+            });
+        });
+
+        function showMonth(mesId) {
+            // Oculta todos los meses
+            document.querySelectorAll('.mes').forEach(function(div) {
+                div.style.display = 'none';
+            });
+            // Muestra el mes seleccionado
+            document.getElementById(mesId).style.display = 'block';
+        }
+
+        // Selecciona el botón "Castillo" al cargar la página
+        window.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toolbar button:not(#filter)').forEach(b => b.classList.remove('active-btn'));
+            const castilloBtn = document.getElementById('gocastillo');
+            if (castilloBtn) castilloBtn.classList.add('active-btn');
+        });
+
+        // Cambia el botón activo al hacer click
+        document.querySelectorAll('.toolbar button:not(#filter)').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toolbar button:not(#filter)').forEach(b => b.classList.remove('active-btn'));
+                this.classList.add('active-btn');
+            });
+        });
+
+        document.querySelectorAll('.navigation-month nav ul li a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                document.querySelectorAll('.navigation-month nav ul li a').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+    </script>
+</body>
+</html>

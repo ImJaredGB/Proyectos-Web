@@ -1,0 +1,167 @@
+/* General Styles */
+body {
+    background-color: #EFEFEF;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    color: #1D1D1D;
+    padding: 20px;
+}
+
+/* Navigation bar Styles */
+.header {
+    width: 100%;
+    padding-bottom: 10px;
+    margin: 0;
+}
+
+.header nav {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.header nav ul {
+    list-style: none;
+    display: flex;
+    gap: 24px;
+    padding-bottom: 20px;
+    margin: 0;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.header nav ul li {
+    flex: 0 0 auto;
+}
+
+.header nav ul li a {
+    font-size: 18px;
+    font-weight: 700;
+    color: #6F6868;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+    background: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.header nav ul li a.active,
+.header nav ul li a:focus,
+.header nav ul li a:hover {
+    color: #1D1D1D;
+    border-bottom: 2px solid #1D1D1D;
+}
+
+/* Toolbar Styles */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 10px;
+}
+
+#filter {
+    padding: 10px 20px;
+    background-color: #1D1D1D;
+    color: #FFF;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+#filter svg {
+    width: 18px;
+    height: 18px;
+    fill: #FFF;
+}
+
+#search {
+    padding: 10px 40px 10px 36px;
+    background-color: #CDCDCD;
+    color: #4F4F4F;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    outline: none;
+    position: relative;
+    width: 200px;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-container svg {
+    position: absolute;
+    left: 10px;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+    fill: #4F4F4F;
+}
+
+.toolbar button {
+    padding: 10px 20px;
+    background: #FFF;
+    color: #1D1D1D;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.toolbar button.active-btn {
+    background: #1D1D1D;
+    color: #FFF;
+}
+
+/* Navigation month styles */
+.navigation-month nav ul {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 32px 0;
+    gap: 55px;
+    overflow-x: auto;
+}
+
+.navigation-month nav ul li {
+    flex: 0 0 auto;
+    text-align: center;
+}
+
+.navigation-month nav ul li a {
+    font-size: 18px;
+    font-weight: 700;
+    color: #949191;
+    text-decoration: none;
+    transition: color 0.2s;
+    padding: 0;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+.navigation-month nav ul li a.active,
+.navigation-month nav ul li a:focus,
+.navigation-month nav ul li a:hover {
+    color: #1D1D1D;
+}
