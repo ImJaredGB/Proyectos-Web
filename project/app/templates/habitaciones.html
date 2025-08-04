@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario</title>
+</head>
+
+<body>
+    
+    <!--Navigation bar-->
+    <div class="header">
+        <nav>
+            <ul>
+                <li><a href="calendario.html">Calendario</a></li>
+                <li><a href="habitaciones.html" class="active">Habitaciones</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!--Main content area-->
+    <div class="main-content">
+        
+        <!--Select Sidebar-->
+        <div class="sidebar">
+            <ul>
+                <li><a href="#">Castillo</a></li>
+                <li><a href="#">Restaurante</a></li>
+                <li><a href="#">Piso</a></li>
+                <li><a href="#">Vilanova</a></li>
+            </ul>
+        </div>
+
+        <!--Data table-->
+        <div id="tabla-habitaciones">
+            <table class="tabla-habitaciones">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Estado</th>
+                        <th>Tamaño</th>
+                        <th>Disponibilidad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Las filas se generarán dinámicamente con JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!--Tool Sidebar-->
+        <div class="tool-sidebar">
+            <ul>
+                <li>
+                    <input 
+                        type="text" 
+                        class="tool-search" 
+                        placeholder="Buscar"
+                    >
+                </li>
+                <li><button>Agregar habitación</button></li>
+                <li><button>Editar habitación</button></li>
+                <li><button>Organizar por disponibilidad</button></li>
+                <li><button>Organizar por estado</button></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Formulario de agregar habitacion emergente -->
+    <div id="formulario-habitacion" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 12px; box-shadow: 0 0px 12px rgba(0,0,0,0.3); z-index: 1000;">
+        <h3>Agregar Habitación</h3>
+        <label> Nombre (Codigo):
+            <input type="text" id="input-nombre">
+        </label><br>
+
+        <label> Estado:
+            <select id="input-estado">
+                <option value="1">Disponible</option>
+                <option value="0">No disponible</option>
+            </select>
+        </label><br>
+
+        <label> Tamaño: (Número de literas) 
+            <input type="text" id="input-tamaño" min="1" max="10">
+        </label><br>
+
+        <label> Zona:
+            <select id="input-zona">
+                <option value="Castillo">Castillo</option>
+                <option value="Restaurante">Restaurante</option>
+                <option value="Piso">Piso</option>
+                <option value="Vilanova">Vilanova</option>
+            </select>
+        </label><br>
+
+        <button id="btn-agregar">Agregar</button>
+        <button onclick="document.getElementById('formulario-habitacion').style.display='none'"">Cancelar </button>
+        
+
+    <!-- Funcionamiento y animaciones de la página-->
+    <script>
+
+        // Carga de datos de habitaciones por zona
+        const habitacionesPorZona = {
+        "Castillo": [
+            { codigo: "C101", estado: 1, tamaño: 4, literas_en_uso: 2 },
+            { codigo: "C102", estado: 1, tamaño: 3, literas_en_uso: 1 },
+            { codigo: "C103", estado: 0, tamaño: 2, literas_en_uso: 2 },
+            { codigo: "C104", estado: 1, tamaño: 1, literas_en_uso: 0 }
+        ],
+        "Restaurante": [
+            { codigo: "R101", estado: 1, tamaño: 4, literas_en_uso: 3 },
+            { codigo: "R102", estado: 0, tamaño: 2, literas_en_uso: 2 },
+            { codigo: "R103", estado: 1, tamaño: 3, literas_en_uso: 0 },
+            { codigo: "R104", estado: 1, tamaño: 1, literas_en_uso: 0 }
+        ],
+        "Piso": [
+            { codigo: "P101", estado: 1, tamaño: 2, literas_en_uso: 1 },
+            { codigo: "P102", estado: 1, tamaño: 4, literas_en_uso: 2 },
+            { codigo: "P103", estado: 0, tamaño: 3, literas_en_uso: 3 },
+            { codigo: "P104", estado: 1, tamaño: 1, literas_en_uso: 0 }
+        ],
+        "Vilanova": [
+            { codigo: "V101", estado: 1, tamaño: 4, literas_en_uso: 2 },
+            { codigo: "V102", estado: 1, tamaño: 2, literas_en_uso: 0 },
+            { codigo: "V103", estado: 0, tamaño: 3, literas_en_uso: 3 },
+            { codigo: "V104", estado: 1, tamaño: 1, literas_en_uso: 0 }
+        ]
+    };
+
+    const usuariosHabitacion = [
+        // Castillo
+        { habitacion: "C101", litera: 1, nombre: "Juan", apellido: "Pérez", documento: "12345678", llegada: "2025-07-01", salida: "2025-08-10", estado: true, zona: "Castillo" },
+        { habitacion: "C101", litera: 2, nombre: "Ana", apellido: "García", documento: "87654321", llegada: "2025-07-05", salida: "2025-07-25", estado: true, zona: "Castillo" },
+        { habitacion: "C102", litera: 1, nombre: "Mario", apellido: "Torres", documento: "22334455", llegada: "2025-06-28", salida: "2025-07-15", estado: true, zona: "Castillo" },
+        { habitacion: "C103", litera: 3, nombre: "Lucía", apellido: "Mendoza", documento: "33445566", llegada: "2025-07-20", salida: "2025-09-02", estado: true, zona: "Castillo" },
+
+        // Restaurante
+        { habitacion: "R101", litera: 1, nombre: "Pedro", apellido: "López", documento: "44556677", llegada: "2025-07-10", salida: "2025-08-01", estado: false, zona: "Restaurante" },
+        { habitacion: "R102", litera: 2, nombre: "Carla", apellido: "Suárez", documento: "55667788", llegada: "2025-07-15", salida: "2025-07-30", estado: true, zona: "Restaurante" },
+        { habitacion: "R103", litera: 1, nombre: "Esteban", apellido: "Vega", documento: "66778899", llegada: "2025-07-25", salida: "2025-08-15", estado: true, zona: "Restaurante" },
+
+        // Piso
+        { habitacion: "P101", litera: 1, nombre: "Marta", apellido: "Ríos", documento: "77889900", llegada: "2025-07-03", salida: "2025-07-20", estado: true, zona: "Piso" },
+        { habitacion: "P102", litera: 2, nombre: "Sergio", apellido: "Castro", documento: "88990011", llegada: "2025-07-28", salida: "2025-08-05", estado: true, zona: "Piso" },
+        
+        // Vilanova
+        { habitacion: "V101", litera: 1, nombre: "Paula", apellido: "Navarro", documento: "99001122", llegada: "2025-07-01", salida: "2025-09-01", estado: true, zona: "Vilanova" },
+        { habitacion: "V102", litera: 2, nombre: "Javier", apellido: "Ortega", documento: "10111213", llegada: "2025-07-18", salida: "2025-08-10", estado: true, zona: "Vilanova" }
+    ];
+        
+    function renderTablaHabitaciones(zona = "Castillo", habitacionesFiltradas = null) {
+        const tabla = document.querySelector("#tabla-habitaciones tbody");
+        tabla.innerHTML = "";
+
+        // Usa las habitaciones filtradas si existen, si no usa todas
+        let habitaciones = habitacionesFiltradas || habitacionesPorZona[zona] || [];
+
+        // Ordena: primero activas, luego desactivadas
+        habitaciones = [
+            ...habitaciones.filter(h => !h.desactivada),
+            ...habitaciones.filter(h => h.desactivada)
+        ];
+
+        habitaciones.forEach((hab, idx) => {
+            const usuariosEnHabitacion = usuariosHabitacion.filter(u => u.habitacion === hab.codigo);
+            const literasOcupadas = usuariosEnHabitacion.length;
+            const literasDisponibles = hab.tamaño - literasOcupadas;
+
+            const estadoTxt = literasDisponibles > 0 ? "Disponible" : "No disponible";
+            const tamañoTxt = `${hab.tamaño} litera${hab.tamaño > 1 ? "s" : ""}`;
+            const disponibilidadTxt = `${literasDisponibles} disponible${literasDisponibles !== 1 ? "s" : ""}`;
+            const panelId = `panel-${zona}-${hab.codigo}`;
+
+            // Desactivada: agrega clase y deshabilita botones
+            const desactivada = hab.desactivada ? "desactivada" : "";
+            const disableBtns = hab.desactivada ? "disabled" : "";
+
+            tabla.innerHTML += `
+                <tr class="${desactivada}">
+                    <td>${hab.codigo}</td>
+                    <td>${estadoTxt}</td>
+                    <td>${tamañoTxt}</td>
+                    <td>${disponibilidadTxt}</td>
+                    <td>
+                        <button class="visualizar-btn" data-panel="${panelId}" ${disableBtns}>
+                            Visualizar
+                            <span style="margin-left:6px;">&#9660;</span>
+                        </button>
+                        <button class="desactivar-btn" data-codigo="${hab.codigo}">
+                            ${hab.desactivada ? "Activar" : "Desactivar"}
+                        </button>
+                    </td>
+                </tr>
+                <tr class="panel-row" style="display:none;">
+                    <td colspan="5">
+                        <div id="${panelId}" class="panel-info" style="display:none; background:#F5F5F5; border-radius:12px; padding:16px; margin:8px 0;">
+                            <strong>Literas ocupadas:</strong>
+                            <table style="width:100%; margin-top:8px;">
+                                <thead>
+                                    <tr>
+                                        <th>Litera</th>
+                                        <th>Nombre</th>
+                                        <th>Apellido</th>
+                                        <th>Documento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${Array.from({length: hab.tamaño}, (_, i) => {
+                                        const usuario = usuariosHabitacion.find(u => u.habitacion === hab.codigo && u.litera === (i+1));
+                                        return `
+                                            <tr>
+                                                <td>${hab.codigo}_${i+1}</td>
+                                                <td>${usuario ? usuario.nombre : "-"}</td>
+                                                <td>${usuario ? usuario.apellido : "-"}</td>
+                                                <td>${usuario ? usuario.documento : "-"}</td>
+                                            </tr>
+                                        `;
+                                    }).join("")}
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        // Mostrar/ocultar panel
+        document.querySelectorAll('.visualizar-btn').forEach(btn => {
+            btn.onclick = function() {
+                if (btn.disabled) return;
+                const panelId = this.getAttribute('data-panel');
+                const panel = document.getElementById(panelId);
+                const panelRow = panel.closest('tr.panel-row');
+                if (panel.style.display === "none") {
+                    panel.style.display = "block";
+                    panelRow.style.display = "";
+                } else {
+                    panel.style.display = "none";
+                    panelRow.style.display = "none";
+                }
+            };
+        });
+
+        // Desactivar/activar habitación
+        document.querySelectorAll('.desactivar-btn').forEach(btn => {
+            btn.onclick = function() {
+                const codigo = this.getAttribute('data-codigo');
+                const zonaActiva = document.querySelector('.sidebar ul li a.active');
+                const zona = zonaActiva ? zonaActiva.textContent.trim() : "Castillo";
+                const hab = (habitacionesPorZona[zona] || []).find(h => h.codigo === codigo);
+                hab.desactivada = !hab.desactivada;
+                renderTablaHabitaciones(zona);
+            };
+        });
+    }
+
+    // Inicializa la tabla con la zona "Castillo"
+    renderTablaHabitaciones("Castillo");
+
+    // Opcional: cambia la zona al hacer click en la sidebar
+    document.querySelectorAll('.sidebar ul li a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.sidebar ul li a').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            renderTablaHabitaciones(this.textContent.trim());
+        });
+    });
+
+    document.querySelector('.tool-search').addEventListener('input', function() {
+        const searchText = this.value.trim().toUpperCase();
+        // Obtén la zona activa
+        const zonaActiva = document.querySelector('.sidebar ul li a.active');
+        const zona = zonaActiva ? zonaActiva.textContent.trim() : "Castillo";
+
+        // Filtra habitaciones por código
+        const habitacionesFiltradas = (habitacionesPorZona[zona] || []).filter(hab =>
+            hab.codigo.includes(searchText)
+        );
+
+        renderTablaHabitaciones(zona, habitacionesFiltradas);
+    });
+
+    // Mostrar formulario emergente
+    document.querySelector('.tool-sidebar button:nth-child(2)').addEventListener('click', () => {
+        document.getElementById('formulario-habitacion').style.display = 'block';
+    });
+
+    </script>
+</body>
+</html>

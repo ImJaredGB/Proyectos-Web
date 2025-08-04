@@ -1,0 +1,487 @@
+/* General Styles */
+body {
+    background-color: #EFEFEF;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    color: #1D1D1D;
+    padding: 20px;
+}
+
+/* Navigation bar Styles */
+.header {
+    width: 100%;
+    padding-bottom: 10px;
+    margin: 0;
+}
+
+.header nav {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.header nav ul {
+    list-style: none;
+    display: flex;
+    gap: 24px;
+    padding-bottom: 20px;
+    margin: 0;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.header nav ul li {
+    flex: 0 0 auto;
+}
+
+.header nav ul li a {
+    font-size: 18px;
+    font-weight: 700;
+    color: #6F6868;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+    background: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.header nav ul li a.active,
+.header nav ul li a:focus,
+.header nav ul li a:hover {
+    color: #1D1D1D;
+    border-bottom: 2px solid #1D1D1D;
+}
+
+/* Toolbar Styles */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 10px;
+}
+
+#filter {
+    padding: 10px 20px;
+    background-color: #1D1D1D;
+    color: #FFF;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+#filter svg {
+    width: 18px;
+    height: 18px;
+    fill: #FFF;
+}
+
+#search {
+    padding: 10px 40px 10px 36px;
+    background-color: #CDCDCD;
+    color: #4F4F4F;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    outline: none;
+    position: relative;
+    width: 200px;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-container svg {
+    position: absolute;
+    left: 10px;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+    fill: #4F4F4F;
+}
+
+.toolbar button {
+    padding: 10px 20px;
+    background: #FFF;
+    color: #1D1D1D;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.toolbar button.active-btn {
+    background: #1D1D1D;
+    color: #FFF;
+}
+
+/* Navigation month styles */
+.navigation-month nav ul {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 32px 0;
+    gap: 55px;
+    overflow-x: auto;
+}
+
+.navigation-month nav ul li {
+    flex: 0 0 auto;
+    text-align: center;
+}
+
+.navigation-month nav ul li a {
+    font-size: 18px;
+    font-weight: 700;
+    color: #949191;
+    text-decoration: none;
+    transition: color 0.2s;
+    padding: 0;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+.navigation-month nav ul li a.active,
+.navigation-month nav ul li a:focus,
+.navigation-month nav ul li a:hover {
+    color: #1D1D1D;
+}
+
+/* Table styles */
+#tabla-mes {
+    background: #D9D9D9;
+    border-radius: 16px;
+    padding: 10px;
+    margin-top: 24px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+#tabla-mes table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+}
+
+#tabla-mes th, #tabla-mes td {
+    border: none;              /* Quita los bordes */
+    padding: 8px;
+    text-align: center;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    background: transparent;   /* Quita el fondo blanco */
+    white-space: nowrap;
+}
+
+#tabla-mes th {
+    background: transparent;   /* Quita el fondo de la cabecera */
+    font-weight: 700;
+    color: #1D1D1D;
+}
+
+#tabla-mes td {
+    background: transparent;   /* Quita el fondo de las celdas */
+    color: #1D1D1D;
+}
+
+#tabla-mes tr:nth-child(even) td,
+#tabla-mes tr:hover td {
+    background: transparent;   /* Quita el fondo alterno y hover */
+}
+
+.reserva-usuario {
+    background: #1D1D1D;
+    color: #fff;
+    border-radius: 20px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Contenedor principal para sidebar y tabla */
+.main-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px; /* Reduce el espacio entre sidebar y tabla */
+    padding-left: 0; /* Elimina cualquier padding extra */
+}
+
+/* Sidebar Styles */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+    position: sticky;
+    top: 20px;
+    min-width: 200px;
+    max-width: 200px;
+    height: fit-content;
+    z-index: 2;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background: #FFF;
+    color: #1D1D1D;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+    max-width: 150px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sidebar ul li a.active,
+.sidebar ul li a:focus,
+.sidebar ul li a:hover {
+    background: #1D1D1D;
+    color: #FFF;
+}
+
+/* Tabla de habitaciones */
+#tabla-habitaciones {
+    background: #D9D9D9;
+    border-radius: 20px;
+    padding: 0;
+    margin-top: 24px;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tabla-habitaciones {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+}
+
+.tabla-habitaciones thead tr th {
+    background: #FFF;
+    color: #1D1D1D;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 16px 8px;
+    border: none;
+    text-align: center;
+}
+
+.tabla-habitaciones tbody tr td {
+    background: #D9D9D9;
+    color: #1D1D1D;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    padding: 14px 8px;
+    border: none;
+    text-align: center;
+}
+
+.tabla-habitaciones tbody tr {
+    border-bottom: 1px solid #bdbdbd;
+}
+
+.tabla-habitaciones tbody tr:last-child {
+    border-bottom: none;
+}
+
+.tabla-habitaciones button {
+    background: #1D1D1D;
+    color: #FFF;
+    border: none;
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    margin-right: 6px;
+}
+
+
+/* Tool-sidebar Styles */
+.tool-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+    position: sticky;
+    top: 20px;
+    min-width: 200px;
+    max-width: 200px;
+    height: fit-content;
+    z-index: 2;
+}
+
+.tool-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.tool-sidebar ul li button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background: #FFF;
+    color: #1D1D1D;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+    max-width: 150px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tool-sidebar ul li button.active,
+.tool-sidebar ul li button:focus,
+.tool-sidebar ul li button:hover {
+    background: #1D1D1D;
+    color: #FFF;
+}
+
+/* Estilo para el input de búsqueda en tool-sidebar */
+.tool-search {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: #FFF;
+    color: #1D1D1D;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    width: 75%;
+    max-width: 200px;
+    box-sizing: border-box;
+    outline: none;
+    margin-bottom: 0;
+    transition: none;
+}
+
+/* Estilo para desplegable de habitaciones */
+.panel-info table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+.panel-info th, .panel-info td {
+    border: none;
+    padding: 6px 8px;
+    text-align: left;
+}
+.panel-info th {
+    background: #E0E0E0;
+    font-weight: 700;
+}
+
+.desactivada {
+    background: #C0C0C0 !important;
+    color: #888 !important;
+}
+.desactivada button:not(.desactivar-btn) {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Modal styles */
+.modal-info {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.modal-content {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 32px 24px;
+    min-width: 320px;
+    max-width: 90vw;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+    position: relative;
+    text-align: center;
+}
+.close-modal-btn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: #1D1D1D;
+    color: #FFF;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    cursor: pointer;
+}
+.send-email-btn {
+    background: #1D1D1D;
+    color: #FFF;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 24px;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 18px;
+    cursor: pointer;
+}
+
+#modal-qr {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

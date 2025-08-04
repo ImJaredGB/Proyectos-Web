@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario</title>
+</head>
+
+<body>
+    
+    <!--Navigation bar-->
+    <div class="header">
+        <nav>
+            <ul>
+                <li><a href="calendariohm.html" class="active">Calendario</a></li>
+                <li><a href="habitaciones.html">Habitaciones</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li>
+            </ul>
+        </nav>
+    </div>
+    
+    <!--Toolbar-->
+    <div class="toolbar">
+        <button id="filter">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 5h18M6 10h12M10 15h4" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+            </svg>
+            Filtros
+        </button>
+        <div class="search-container">
+            <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7" stroke="#4F4F4F" stroke-width="2" fill="none"/>
+                <line x1="16" y1="16" x2="21" y2="21" stroke="#4F4F4F" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="text" id="search" placeholder="Buscar...">
+        </div>
+        <button id="gocastillo">Castillo</button>
+        <button id="gorestaurante">Restaurante</button>
+        <button id="gopiso">Piso</button>
+        <button id="gocvilanova">Vilanova</button>
+    </div>
+
+    <!--Navigation month-->
+    <div class="navigation-month">
+        <nav>
+            <ul id="month-list">
+                <li><a href="#" onclick="showMonth('enero')">Enero</a></li>
+                <li><a href="#" onclick="showMonth('febrero')">Febrero</a></li>
+                <li><a href="#" onclick="showMonth('marzo')">Marzo</a></li>
+                <li><a href="#" onclick="showMonth('abril')">Abril</a></li>
+                <li><a href="#" onclick="showMonth('mayo')">Mayo</a></li>
+                <li><a href="#" onclick="showMonth('junio')">Junio</a></li>
+                <li><a href="#" onclick="showMonth('julio')">Julio</a></li>
+                <li><a href="#" onclick="showMonth('agosto')">Agosto</a></li>
+                <li><a href="#" onclick="showMonth('septiembre')">Septiembre</a></li>
+                <li><a href="#" onclick="showMonth('octubre')">Octubre</a></li>
+                <li><a href="#" onclick="showMonth('noviembre')">Noviembre</a></li>
+                <li><a href="#" onclick="showMonth('diciembre')">Diciembre</a></li>
+            </ul>
+        </nav>
+    </div>
+
+
+    <!--Data table-->
+    <div id="tabla-mes"></div>
+
+    <!--Animations and functions-->
+    <script>
+
+        // Carga de datos de las habitaciones respecto a las zonas
+        const habitacionesPorZona = {
+            "Castillo": [
+                "C101_1", "C101_2", "C101_3", "C101_4",
+                "C102_1", "C102_2", "C102_3", "C102_4",
+                "C103_1", "C103_2", "C103_3", "C103_4",
+                "C104_1", "C104_2", "C104_3", "C104_4"
+            ],
+            "Restaurante": [
+                "R101_1", "R101_2", "R101_3", "R101_4",
+                "R102_1", "R102_2", "R102_3", "R102_4",
+                "R103_1", "R103_2", "R103_3", "R103_4",
+                "R104_1", "R104_2", "R104_3", "R104_4"
+            ],
+            "Piso": [
+                "P101_1", "P101_2", "P101_3", "P101_4",
+                "P102_1", "P102_2", "P102_3", "P102_4",
+                "P103_1", "P103_2", "P103_3", "P103_4",
+                "P104_1", "P104_2", "P104_3", "P104_4"
+            ],
+            "Vilanova": [
+                "V101_1", "V101_2", "V101_3", "V101_4",
+                "V102_1", "V102_2", "V102_3", "V102_4",
+                "V103_1", "V103_2", "V103_3", "V103_4",
+                "V104_1", "V104_2", "V104_3", "V104_4"
+            ]
+        };
+            
+        // Carga de datos de usuarios
+        const usuariosHabitacion = [
+            // Castillo
+            { habitacion: "C101", litera: 1, nombre: "Juan", apellido: "Pérez", documento: "12345678", llegada: "2025-07-01", salida: "2025-08-10", estado: true, zona: "Castillo" },
+            { habitacion: "C101", litera: 2, nombre: "Ana", apellido: "García", documento: "87654321", llegada: "2025-07-05", salida: "2025-07-25", estado: true, zona: "Castillo" },
+            { habitacion: "C102", litera: 1, nombre: "Mario", apellido: "Torres", documento: "22334455", llegada: "2025-06-28", salida: "2025-07-15", estado: true, zona: "Castillo" },
+            { habitacion: "C103", litera: 3, nombre: "Lucía", apellido: "Mendoza", documento: "33445566", llegada: "2025-07-20", salida: "2025-09-02", estado: true, zona: "Castillo" },
+
+            // Restaurante
+            { habitacion: "R101", litera: 1, nombre: "Pedro", apellido: "López", documento: "44556677", llegada: "2025-07-10", salida: "2025-08-01", estado: false, zona: "Restaurante" },
+            { habitacion: "R102", litera: 2, nombre: "Carla", apellido: "Suárez", documento: "55667788", llegada: "2025-07-15", salida: "2025-07-30", estado: true, zona: "Restaurante" },
+            { habitacion: "R103", litera: 1, nombre: "Esteban", apellido: "Vega", documento: "66778899", llegada: "2025-07-25", salida: "2025-08-15", estado: true, zona: "Restaurante" },
+
+            // Piso
+            { habitacion: "P101", litera: 1, nombre: "Marta", apellido: "Ríos", documento: "77889900", llegada: "2025-07-03", salida: "2025-07-20", estado: true, zona: "Piso" },
+            { habitacion: "P102", litera: 2, nombre: "Sergio", apellido: "Castro", documento: "88990011", llegada: "2025-07-28", salida: "2025-08-05", estado: true, zona: "Piso" },
+            
+            // Vilanova
+            { habitacion: "V101", litera: 1, nombre: "Paula", apellido: "Navarro", documento: "99001122", llegada: "2025-07-01", salida: "2025-09-01", estado: true, zona: "Vilanova" },
+            { habitacion: "V102", litera: 2, nombre: "Javier", apellido: "Ortega", documento: "10111213", llegada: "2025-07-18", salida: "2025-08-10", estado: true, zona: "Vilanova" }
+        ];
+
+        function showMonth(mesId) {
+            // Oculta todos los meses
+            document.querySelectorAll('.mes').forEach(function(div) {
+                div.style.display = 'none';
+            });
+            // Muestra el mes seleccionado
+            document.getElementById(mesId).style.display = 'block';
+        }
+
+        document.querySelectorAll('.toolbar button:not(#filter)').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toolbar button:not(#filter)').forEach(b => b.classList.remove('active-btn'));
+                this.classList.add('active-btn');
+            });
+        });
+
+        // Selecciona el botón "Castillo" al cargar la página
+        window.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toolbar button:not(#filter)').forEach(b => b.classList.remove('active-btn'));
+            const castilloBtn = document.getElementById('gocastillo');
+            if (castilloBtn) castilloBtn.classList.add('active-btn');
+        });
+
+        // Cambia el botón activo al hacer click
+        document.querySelectorAll('.toolbar button:not(#filter)').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toolbar button:not(#filter)').forEach(b => b.classList.remove('active-btn'));
+                this.classList.add('active-btn');
+            });
+        });
+
+        document.querySelectorAll('.navigation-month nav ul li a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                document.querySelectorAll('.navigation-month nav ul li a').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+
+        // Devuelve el número de días del mes, considerando años bisiestos
+        function diasEnMes(mes, anio) {
+            return new Date(anio, mes, 0).getDate();
+        }
+
+        // Genera la tabla para el mes seleccionado
+        function renderTablaMes(mesNombre, zonaActual, searchText = "") {
+            const meses = [
+                "enero", "febrero", "marzo", "abril", "mayo", "junio",
+                "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+            ];
+            const mesIndex = meses.indexOf(mesNombre.toLowerCase());
+            const anio = 2025;
+            const dias = diasEnMes(mesIndex + 1, anio);
+
+            // Habitaciones por zona
+            let habitaciones = habitacionesPorZona[zonaActual] || [];
+            let usuariosZona = usuariosHabitacion.filter(u => u.zona === zonaActual);
+
+            // Filtra usuarios por búsqueda
+            if (searchText) {
+                usuariosZona = usuariosZona.filter(u =>
+                    u.nombre.toLowerCase().includes(searchText) ||
+                    u.apellido.toLowerCase().includes(searchText) ||
+                    u.habitacion.toLowerCase().includes(searchText)
+                );
+
+                // Si el texto de búsqueda coincide con algún código de habitación, filtra habitaciones
+                const habFiltradas = habitaciones.filter(hab =>
+                    hab.toLowerCase().includes(searchText)
+                );
+                if (habFiltradas.length > 0) {
+                    habitaciones = habFiltradas;
+                }
+            }
+
+            let tabla = '<table><thead><tr>';
+            tabla += '<th>Habitaciones</th>';
+            for (let d = 1; d <= dias; d++) {
+                tabla += `<th>${d}</th>`;
+            }
+            tabla += '</tr></thead><tbody>';
+
+            habitaciones.forEach(hab => {
+                tabla += `<tr><td>${hab}</td>`;
+                let d = 1;
+                // Extrae código y número de litera
+                const [codigo, litera] = hab.split('_');
+                const reservas = usuariosZona.filter(u => u.habitacion === codigo && String(u.litera) === litera);
+                while (d <= dias) {
+                    const reserva = reservas.find(u => {
+                        const fechaIn = new Date(u.llegada);
+                        const fechaOut = new Date(u.salida);
+                        const fechaActual = new Date(anio, mesIndex, d);
+                        return (
+                            fechaActual >= fechaIn &&
+                            fechaActual <= fechaOut &&
+                            fechaActual.getMonth() === mesIndex
+                        );
+                    });
+
+                    if (reserva) {
+                        const fechaIn = new Date(reserva.llegada);
+                        const fechaOut = new Date(reserva.salida);
+                        const start = (fechaIn.getMonth() === mesIndex) ? fechaIn.getDate() : 1;
+                        const end = (fechaOut.getMonth() === mesIndex) ? fechaOut.getDate() : dias;
+                        const colspan = end - d + 1;
+
+                        tabla += `<td colspan="${colspan}">
+                            <div class="reserva-usuario">
+                                ${reserva.nombre}
+                            </div>
+                        </td>`;
+                        d = end + 1;
+                    } else {
+                        tabla += `<td></td>`;
+                        d++;
+                    }
+                }
+                tabla += '</tr>';
+            });
+
+            tabla += '</tbody></table>';
+            document.getElementById('tabla-mes').innerHTML = tabla;
+        }
+
+        // Cambia el mes y la clase activa al hacer click en un mes
+        document.querySelectorAll('.navigation-month nav ul li a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.navigation-month nav ul li a').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                renderTablaMes(this.textContent.trim().toLowerCase());
+            });
+        });
+
+        // Marca el mes actual como activo al cargar
+        window.addEventListener('DOMContentLoaded', function() {
+            const meses = [
+                "enero", "febrero", "marzo", "abril", "mayo", "junio",
+                "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+            ];  
+            const mesActual = new Date().getMonth(); // 0-11
+            const mesNombre = meses[mesActual];
+
+            renderTablaMes(mesNombre, zonaActual);
+
+            document.querySelectorAll('.navigation-month nav ul li a').forEach(link => {
+                if (link.textContent.trim().toLowerCase() === mesNombre) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.navigation-month nav ul li a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.navigation-month nav ul li a').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                renderTablaMes(this.textContent.trim().toLowerCase(), zonaActual);
+            });
+        });
+
+
+        // Control de zonas
+        let zonaActual = "Castillo"; // Valor inicial
+
+        document.querySelectorAll('.toolbar button:not(#filter)').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toolbar button:not(#filter)').forEach(b => b.classList.remove('active-btn'));
+                this.classList.add('active-btn');
+                zonaActual = this.textContent.trim();
+                // Obtén el mes activo actual
+                const mesActivo = document.querySelector('.navigation-month nav ul li a.active');
+                const mesNombre = mesActivo ? mesActivo.textContent.trim().toLowerCase() : "enero";
+                renderTablaMes(mesNombre, zonaActual);
+            });
+        });
+
+        // Filtrado por búsqueda
+        document.getElementById('search').addEventListener('input', function() {
+            const searchText = this.value.trim().toLowerCase();
+            // Obtén el mes y zona actuales
+            const mesActivo = document.querySelector('.navigation-month nav ul li a.active');
+            const mesNombre = mesActivo ? mesActivo.textContent.trim().toLowerCase() : "enero";
+            renderTablaMes(mesNombre, zonaActual, searchText);
+        });
+
+    </script>
+</body>
+</html>
