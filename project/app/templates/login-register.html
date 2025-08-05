@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulario de Registro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #EFEFEF;
+      padding: 20px;
+    }
+
+    form {
+      background: none;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+      border-radius: 8px;
+    }
+
+    h2 {
+      text-align: left;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #000; /* subrayado */
+      padding-bottom: 5px;
+    }
+
+    .bloque-principal {
+      background-color: #D9D9D9;
+      padding: 30px;
+      border-radius: 20px;
+    }
+
+    .fila {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 30px;
+    }
+
+    .columna {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .columna input, .columna select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      box-sizing: border-box;
+    }
+
+    .etiqueta {
+      font-weight: bold;
+    }
+
+    .checkbox {
+      margin-top: 15px;
+    }
+
+    .checkbox label {
+      margin-left: 8px;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background-color: #1D1D1D;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #537854;
+    }
+
+    .error {
+      color: red;
+      font-size: 14px;
+    }
+
+    .input-password {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-password input {
+      width: 100%;
+      padding-right: 70px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      color: #1D1D1D;
+    }
+  </style>
+</head>
+<body>
+
+  <form onsubmit="return validarFormulario()">
+    <h2>Registro</h2>
+
+    <!-- BLOQUE GRIS -->
+    <div class="bloque-principal">
+
+      <div class="fila">
+        <!-- Columna izquierda -->
+        <div class="columna">
+          <label class="etiqueta" for="correo">Correo electrónico</label>
+          <input type="email" id="correo" name="correo" required>
+
+          <label class="etiqueta" for="password">Contraseña</label>
+          <div class="input-password">
+            <input type="password" id="password" name="password" required>
+          </div>
+
+          <label class="etiqueta" for="confirmar">Confirmar contraseña</label>
+          <div class="input-password">
+            <input type="password" id="confirmar" name="confirmar" required>
+          </div>
+
+          <div id="errorPassword" class="error"></div>
+        </div>
+
+        <!-- Columna centro -->
+        <div class="columna">
+          <label class="etiqueta" for="nombres">Nombres</label>
+          <input type="text" id="nombres" name="nombres" required>
+
+          <label class="etiqueta" for="apellidos">Apellidos</label>
+          <input type="text" id="apellidos" name="apellidos" required>
+
+          <label class="etiqueta" for="telefono">Teléfono</label>
+          <input type="tel" id="telefono" name="telefono" pattern="[0-9]+" required>
+        </div>
+
+        <!-- Columna derecha -->
+        <div class="columna">
+          <label class="etiqueta" for="tipo_doc">Tipo de documento</label>
+          <select id="tipo_doc" name="tipo_doc" required>
+            <option value="">-- Selecciona un tipo --</option>
+            <option value="carnet_extranjeria">Carné de extranjería</option>
+            <option value="dni_espanol">Documento de identidad español</option>
+          </select>
+
+          <label class="etiqueta" for="numero_doc">Número de documento</label>
+          <input type="text" id="numero_doc" name="numero_doc" pattern="[0-9A-Za-z]+" required>
+
+          <label class="etiqueta" for="nacionalidad">Nacionalidad</label>
+          <select id="nacionalidad" name="nacionalidad" required>
+            <option value="">-- Selecciona una nacionalidad --</option>
+            <option value="española">Española</option>
+            <option value="peruana">Peruana</option>
+            <option value="colombiana">Colombiana</option>
+            <option value="venezolana">Venezolana</option>
+            <option value="otra">Otra</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Casillas y botón (fuera del bloque gris) -->
+    <div class="checkbox">
+      <input type="checkbox" id="captcha" required>
+      <label for="captcha">No soy un robot</label>
+    </div>
+
+    <div class="checkbox">
+      <input type="checkbox" id="terminos" required>
+      <label for="terminos">Aceptar los términos y condiciones</label>
+    </div>
+
+    <button type="submit">Registrarse</button>
+  </form>
+
+  <script>
+    function validarFormulario() {
+      const pass = document.getElementById("password").value;
+      const confirmar = document.getElementById("confirmar").value;
+      const errorDiv = document.getElementById("errorPassword");
+
+      if (pass !== confirmar) {
+        errorDiv.textContent = "Las contraseñas no coinciden.";
+        return false;
+      }
+
+      errorDiv.textContent = "";
+      return true;
+    }
+  </script>
+
+</body>
+</html>
