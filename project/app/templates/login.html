@@ -76,6 +76,7 @@
 <body>
 
   <form method="post">
+    {% load static %}
     {% csrf_token %}
     {% if error %}
       <div class="error">{{ error }}</div>

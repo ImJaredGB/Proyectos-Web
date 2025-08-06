@@ -112,6 +112,7 @@
 <body>
 
   <form method="post" onsubmit="return validarFormulario()">
+    {% load static %}
     {% csrf_token %}
     {% if error_message %}
       <div class="error">{{ error_message }}</div>
