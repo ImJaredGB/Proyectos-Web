@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 
-from project.app.models import Usuario
+from django.contrib.auth import authenticate, login
+from .models import Usuario
 from .forms import UsuarioForm, ResidenteForm
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.db import IntegrityError
 
 def registro_residente_view(request):
@@ -52,19 +53,23 @@ def registro_residente_view(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        email = request.POST.get('username')
         password = request.POST.get('password')
 
         try:
-            usuario = Usuario.objects.get(username=username)
-            if usuario.check_password(password):
-                # Aquí podrías iniciar sesión al usuario
-                return redirect('home')  # Redirige a la página de inicio o dashboard
-            else:
-                error_message = "Contraseña incorrecta."
-        except Usuario.DoesNotExist:
-            error_message = "Usuario no encontrado."
+            usuario = Usuario.objects.get(username=email)
 
-        return render(request, 'login.html', {'error_message': error_message})
+            if check_password(password, usuario.password):
+                # Aquí puedes guardar el ID del usuario en sesión manualmente si no usas login()
+                request.session['usuario_id'] = usuario.id
+                return redirect('home')
+            else:
+                return render(request, 'login.html', {'error': 'Contraseña incorrecta'})
+
+        except Usuario.DoesNotExist:
+            return render(request, 'login.html', {'error': 'Usuario no encontrado'})
 
     return render(request, 'login.html')
+
+def home_view(request):
+    return render(request, 'calendario.html')

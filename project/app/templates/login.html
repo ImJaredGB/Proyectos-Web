@@ -53,6 +53,7 @@
     .error {
       color: red;
       font-size: 14px;
+      margin-bottom: 15px;
     }
 
     button {
@@ -76,15 +77,15 @@
 
   <form method="post">
     {% csrf_token %}
-    {% if error_message %}
-      <div class="error">{{ error_message }}</div>
+    {% if error %}
+      <div class="error">{{ error }}</div>
     {% endif %}
     <h2>Iniciar Sesión</h2>
 
     <div class="bloque-principal">
       <div class="columna">
         <label class="etiqueta" for="username">Correo electrónico</label>
-        <input type="text" id="username" name="username" value="{{ request.POST.username }}" required>
+        <input type="text" id="username" name="username" value="{{ request.POST.username|default_if_none:'' }}" required>
 
         <label class="etiqueta" for="password">Contraseña</label>
         <input type="password" id="password" name="password" required>
