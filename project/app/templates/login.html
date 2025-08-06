@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Iniciar Sesión</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #EFEFEF;
+      padding: 20px;
+    }
+
+    form {
+      background: none;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      border-radius: 8px;
+    }
+
+    h2 {
+      text-align: left;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 5px;
+    }
+
+    .bloque-principal {
+      background-color: #D9D9D9;
+      padding: 30px;
+      border-radius: 20px;
+    }
+
+    .columna {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .columna input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      box-sizing: border-box;
+    }
+
+    .etiqueta {
+      font-weight: bold;
+    }
+
+    .error {
+      color: red;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background-color: #1D1D1D;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #537854;
+    }
+  </style>
+</head>
+<body>
+
+  <form method="post">
+    {% csrf_token %}
+    {% if error_message %}
+      <div class="error">{{ error_message }}</div>
+    {% endif %}
+    <h2>Iniciar Sesión</h2>
+
+    <div class="bloque-principal">
+      <div class="columna">
+        <label class="etiqueta" for="username">Correo electrónico</label>
+        <input type="text" id="username" name="username" value="{{ request.POST.username }}" required>
+
+        <label class="etiqueta" for="password">Contraseña</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+    </div>
+
+    <button type="submit">Entrar</button>
+  </form>
+
+</body>
+</html>

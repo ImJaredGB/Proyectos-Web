@@ -50,12 +50,16 @@ class Residente(models.Model):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     n_documento = models.CharField(max_length=50)
-    llegada = models.DateField()
-    salida = models.DateField()
+
+    llegada = models.DateField(null=True, blank=True)
+    salida = models.DateField(null=True, blank=True)
+
     nacionalidad = models.CharField(max_length=50)
     telefono = models.CharField(max_length=20)
-    estado = models.CharField(max_length=50)
-    habitacion = models.ForeignKey(Habitacion, on_delete=models.SET_NULL, null=True, related_name='residentes')
+
+    estado = models.CharField(max_length=50, null=True, blank=True)
+
+    habitacion = models.ForeignKey(Habitacion, on_delete=models.SET_NULL, null=True, blank=True, related_name='residentes')
     litera = models.ForeignKey(Litera, on_delete=models.SET_NULL, null=True, blank=True, related_name='ocupantes')
 
     def __str__(self):
