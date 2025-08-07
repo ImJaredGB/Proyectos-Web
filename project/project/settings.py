@@ -123,3 +123,12 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Mantener la sesión iniciada por 1 semana (en segundos)
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 7 días
+
+# Opcional: guardar la sesión incluso si no ha cambiado
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Asegúrate de que la cookie no se borre al cerrar el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False

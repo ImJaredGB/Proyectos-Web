@@ -27,18 +27,25 @@ class Administrador(models.Model):
 
 # Habitación
 class Habitacion(models.Model):
-    nomenclatura = models.CharField(max_length=50)
-    estado = models.CharField(max_length=50)
-    tamaño = models.CharField(max_length=50)
-    zonas = models.CharField(max_length=100)
+    ZONAS = [
+        ('Castillo', 'Castillo'),
+        ('Restaurante', 'Restaurante'),
+        ('Piso', 'Piso'),
+        ('Vilanova', 'Vilanova'),
+    ]
+    nomenclatura = models.CharField(max_length=10, unique=True)
+    estado = models.BooleanField(default=True)
+    tamaño = models.PositiveIntegerField()
+    zona = models.CharField(max_length=20, choices=ZONAS)
+    desactivada = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nomenclatura
 
 # Litera
 class Litera(models.Model):
-    codigo = models.CharField(max_length=50)
-    estado = models.CharField(max_length=50)
+    codigo = models.CharField(max_length=10, unique=True)
+    estado = models.BooleanField(default=True)
     habitacion = models.ForeignKey(Habitacion, on_delete=models.CASCADE, related_name='literas')
 
     def __str__(self):

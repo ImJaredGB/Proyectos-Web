@@ -1,7 +1,8 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{% static 'app/styles.css' %}">
     <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,9 +15,9 @@
     <div class="header">
         <nav>
             <ul>
-                <li><a href="calendario.html">Calendario</a></li>
-                <li><a href="habitaciones.html">Habitaciones</a></li>
-                <li><a href="usuarios.html" class="active">Usuarios</a></li>
+                <li><a href="/home">Calendario</a></li>
+                <li><a href="/habitaciones" >Habitaciones</a></li>
+                <li><a href="/usuarios" class="active">Usuarios</a></li>
             </ul>
         </nav>
     </div>
@@ -68,57 +69,6 @@
     <!--Animations and functions-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        const usuariosHabitacion = [
-            // Castillo
-            { habitacion: "C101", litera: 1, nombre: "Juan", apellido: "Pérez", documento: "12345678", llegada: "2025-07-01", salida: "2025-08-10", estado: true, zona: "Castillo" },
-            { habitacion: "C101", litera: 2, nombre: "Ana", apellido: "García", documento: "87654321", llegada: "2025-07-05", salida: "2025-07-25", estado: true, zona: "Castillo" },
-            { habitacion: "C102", litera: 1, nombre: "Mario", apellido: "Torres", documento: "22334455", llegada: "2025-06-28", salida: "2025-07-15", estado: true, zona: "Castillo" },
-            { habitacion: "C103", litera: 3, nombre: "Lucía", apellido: "Mendoza", documento: "33445566", llegada: "2025-07-20", salida: "2025-09-02", estado: true, zona: "Castillo" },
-
-            // Restaurante
-            { habitacion: "R101", litera: 1, nombre: "Pedro", apellido: "López", documento: "44556677", llegada: "2025-07-10", salida: "2025-08-01", estado: false, zona: "Restaurante" },
-            { habitacion: "R102", litera: 2, nombre: "Carla", apellido: "Suárez", documento: "55667788", llegada: "2025-07-15", salida: "2025-07-30", estado: true, zona: "Restaurante" },
-            { habitacion: "R103", litera: 1, nombre: "Esteban", apellido: "Vega", documento: "66778899", llegada: "2025-07-25", salida: "2025-08-15", estado: true, zona: "Restaurante" },
-
-            // Piso
-            { habitacion: "P101", litera: 1, nombre: "Marta", apellido: "Ríos", documento: "77889900", llegada: "2025-07-03", salida: "2025-07-20", estado: true, zona: "Piso" },
-            { habitacion: "P102", litera: 2, nombre: "Sergio", apellido: "Castro", documento: "88990011", llegada: "2025-07-28", salida: "2025-08-05", estado: true, zona: "Piso" },
-            
-            // Vilanova
-            { habitacion: "V101", litera: 1, nombre: "Paula", apellido: "Navarro", documento: "99001122", llegada: "2025-07-01", salida: "2025-09-01", estado: true, zona: "Vilanova" },
-            { habitacion: "V102", litera: 2, nombre: "Javier", apellido: "Ortega", documento: "10111213", llegada: "2025-07-18", salida: "2025-08-10", estado: true, zona: "Vilanova" }
-        ];
-
-        function renderTablaUsuarios() {
-            const tabla = document.querySelector("#tabla-habitaciones tbody");
-            tabla.innerHTML = "";
-
-            usuariosHabitacion.forEach((usuario, idx) => {
-                const fila = document.createElement("tr");
-                fila.innerHTML = `
-                    <td>${usuario.nombre}</td>
-                    <td>${usuario.apellido}</td>
-                    <td>${usuario.documento}</td>
-                    <td>${usuario.llegada}</td>
-                    <td>${usuario.salida}</td>
-                    <td>
-                        <button class="info-btn" data-idx="${idx}">Ver info</button>
-                    </td>
-                    <td>${usuario.estado ? 'Activo' : 'Inactivo'}</td>
-                `;
-                tabla.appendChild(fila);
-            });
-
-            // Evento para mostrar modal
-            document.querySelectorAll('.info-btn').forEach(btn => {
-                btn.onclick = function() {
-                    const idx = this.getAttribute('data-idx');
-                    const usuario = usuariosHabitacion[idx];
-                    mostrarModalInfo(usuario);
-                };
-            });
-        }
-
         // Modal logic
         function mostrarModalInfo(usuario) {
             const modal = document.getElementById('modal-info');
@@ -153,9 +103,6 @@
         document.getElementById('close-modal').onclick = function() {
             document.getElementById('modal-info').style.display = 'none';
         };
-
-        // Inicializar la tabla al cargar la página
-        document.addEventListener("DOMContentLoaded", renderTablaUsuarios);
 
     </script>
 </body>

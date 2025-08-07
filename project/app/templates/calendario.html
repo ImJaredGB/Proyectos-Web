@@ -7,6 +7,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario</title>
+    <style>
+        .user-menu {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #menu-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        #dropdown-menu {
+            position: fixed;
+            top: 0;
+            right: -250px;
+            width: 200px;
+            height: 100vh;
+            background-color: #1D1D1D;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding-top: 60px;
+            transition: right 0.3s ease;
+        }
+
+        #dropdown-menu.open {
+            right: 0;
+        }
+
+        #dropdown-menu a,
+        #dropdown-menu button {
+            padding: 15px;
+            text-align: left;
+            text-decoration: none;
+            color: white;
+            background: none;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #dropdown-menu a:hover,
+        #dropdown-menu button:hover {
+            background-color: #2c2c2c;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,11 +66,21 @@
     <div class="header">
         <nav>
             <ul>
-                <li><a href="calendariohm.html" class="active">Calendario</a></li>
-                <li><a href="habitaciones.html">Habitaciones</a></li>
-                <li><a href="usuarios.html">Usuarios</a></li>
+                <li><a href="/home" class="active">Calendario</a></li>
+                <li><a href="/habitaciones" >Habitaciones</a></li>
+                <li><a href="/usuarios">Usuarios</a></li>
             </ul>
         </nav>
+        <div class="user-menu">
+            <button id="menu-toggle"><span id="menu-icon">☰</span></button>
+        </div>
+        <div id="dropdown-menu">
+            <a href="#">Perfil</a>
+            <form method="post" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" name="cerrar_sesion">Cerrar sesión</button>
+            </form>
+        </div>
     </div>
     
     <!--Toolbar-->
@@ -70,55 +131,6 @@
     <!--Animations and functions-->
     <script>
 
-        // Carga de datos de las habitaciones respecto a las zonas
-        const habitacionesPorZona = {
-            "Castillo": [
-                "C101_1", "C101_2", "C101_3", "C101_4",
-                "C102_1", "C102_2", "C102_3", "C102_4",
-                "C103_1", "C103_2", "C103_3", "C103_4",
-                "C104_1", "C104_2", "C104_3", "C104_4"
-            ],
-            "Restaurante": [
-                "R101_1", "R101_2", "R101_3", "R101_4",
-                "R102_1", "R102_2", "R102_3", "R102_4",
-                "R103_1", "R103_2", "R103_3", "R103_4",
-                "R104_1", "R104_2", "R104_3", "R104_4"
-            ],
-            "Piso": [
-                "P101_1", "P101_2", "P101_3", "P101_4",
-                "P102_1", "P102_2", "P102_3", "P102_4",
-                "P103_1", "P103_2", "P103_3", "P103_4",
-                "P104_1", "P104_2", "P104_3", "P104_4"
-            ],
-            "Vilanova": [
-                "V101_1", "V101_2", "V101_3", "V101_4",
-                "V102_1", "V102_2", "V102_3", "V102_4",
-                "V103_1", "V103_2", "V103_3", "V103_4",
-                "V104_1", "V104_2", "V104_3", "V104_4"
-            ]
-        };
-            
-        // Carga de datos de usuarios
-        const usuariosHabitacion = [
-            // Castillo
-            { habitacion: "C101", litera: 1, nombre: "Juan", apellido: "Pérez", documento: "12345678", llegada: "2025-07-01", salida: "2025-08-10", estado: true, zona: "Castillo" },
-            { habitacion: "C101", litera: 2, nombre: "Ana", apellido: "García", documento: "87654321", llegada: "2025-07-05", salida: "2025-07-25", estado: true, zona: "Castillo" },
-            { habitacion: "C102", litera: 1, nombre: "Mario", apellido: "Torres", documento: "22334455", llegada: "2025-06-28", salida: "2025-07-15", estado: true, zona: "Castillo" },
-            { habitacion: "C103", litera: 3, nombre: "Lucía", apellido: "Mendoza", documento: "33445566", llegada: "2025-07-20", salida: "2025-09-02", estado: true, zona: "Castillo" },
-
-            // Restaurante
-            { habitacion: "R101", litera: 1, nombre: "Pedro", apellido: "López", documento: "44556677", llegada: "2025-07-10", salida: "2025-08-01", estado: false, zona: "Restaurante" },
-            { habitacion: "R102", litera: 2, nombre: "Carla", apellido: "Suárez", documento: "55667788", llegada: "2025-07-15", salida: "2025-07-30", estado: true, zona: "Restaurante" },
-            { habitacion: "R103", litera: 1, nombre: "Esteban", apellido: "Vega", documento: "66778899", llegada: "2025-07-25", salida: "2025-08-15", estado: true, zona: "Restaurante" },
-
-            // Piso
-            { habitacion: "P101", litera: 1, nombre: "Marta", apellido: "Ríos", documento: "77889900", llegada: "2025-07-03", salida: "2025-07-20", estado: true, zona: "Piso" },
-            { habitacion: "P102", litera: 2, nombre: "Sergio", apellido: "Castro", documento: "88990011", llegada: "2025-07-28", salida: "2025-08-05", estado: true, zona: "Piso" },
-            
-            // Vilanova
-            { habitacion: "V101", litera: 1, nombre: "Paula", apellido: "Navarro", documento: "99001122", llegada: "2025-07-01", salida: "2025-09-01", estado: true, zona: "Vilanova" },
-            { habitacion: "V102", litera: 2, nombre: "Javier", apellido: "Ortega", documento: "10111213", llegada: "2025-07-18", salida: "2025-08-10", estado: true, zona: "Vilanova" }
-        ];
 
         function showMonth(mesId) {
             // Oculta todos los meses
@@ -174,9 +186,9 @@
             const anio = 2025;
             const dias = diasEnMes(mesIndex + 1, anio);
 
-            // Habitaciones por zona
-            let habitaciones = habitacionesPorZona[zonaActual] || [];
-            let usuariosZona = usuariosHabitacion.filter(u => u.zona === zonaActual);
+            // Habitaciones y usuarios por zona (deberán ser cargados dinámicamente)
+            let habitaciones = [];  // Deberán ser cargadas dinámicamente
+            let usuariosZona = [];  // Deberán ser cargados dinámicamente
 
             // Filtra usuarios por búsqueda
             if (searchText) {
@@ -309,6 +321,24 @@
             renderTablaMes(mesNombre, zonaActual, searchText);
         });
 
-    </script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    const menuIcon = document.getElementById('menu-icon');
+
+    menuToggle.addEventListener('click', function () {
+        dropdownMenu.classList.toggle('open');
+        const isOpen = dropdownMenu.classList.contains('open');
+        menuIcon.textContent = isOpen ? '✕' : '☰';
+        menuIcon.style.color = isOpen ? 'white' : 'black';
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!dropdownMenu.contains(event.target) && !menuToggle.contains(event.target)) {
+            dropdownMenu.classList.remove('open');
+            menuIcon.textContent = '☰';
+            menuIcon.style.color = 'black';
+        }
+    });
+</script>
 </body>
 </html>

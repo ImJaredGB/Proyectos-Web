@@ -1,11 +1,16 @@
 from django.shortcuts import render, redirect
-
-from django.contrib.auth import authenticate, login
-from .models import Usuario
-from .forms import UsuarioForm, ResidenteForm
+from .models import *
+from .forms import *
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import IntegrityError
+from .decorators import login_required_custom
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
+
+
+# Vistas html
 def registro_residente_view(request):
     error_message = None
 
@@ -71,5 +76,113 @@ def login_view(request):
 
     return render(request, 'login.html')
 
+def logout_view(request):
+    request.session.flush()  # Elimina todos los datos de sesión
+    return login_view(request)
+
+from django.shortcuts import render, redirect
+from .decorators import login_required_custom
+
+@login_required_custom
 def home_view(request):
+    if request.method == "POST" and "cerrar_sesion" in request.POST:
+        request.session.flush()
+        return redirect('login')
+    
     return render(request, 'calendario.html')
+
+@login_required_custom
+def habitaciones_view(request):
+    if request.method == "POST" and "cerrar_sesion" in request.POST:
+        request.session.flush()
+        return redirect('login')
+    
+    return render(request, 'habitaciones.html')
+
+@login_required_custom
+def usuarios_view(request):
+    if request.method == "POST" and "cerrar_sesion" in request.POST:
+        request.session.flush()
+        return redirect('login')
+
+    usuarios = Usuario.objects.all()
+    return render(request, 'usuarios.html', {'usuarios': usuarios})
+
+# APIs
+@csrf_exempt
+def crear_habitacion(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            zona = data.get('zona')
+            tamaño = int(data.get('tamaño'))
+
+            # Validar zona
+            prefijos = {
+                "Castillo": "CP",
+                "Restaurante": "RP",
+                "Piso": "PP",
+                "Vilanova": "VP"
+            }
+
+            if zona not in prefijos:
+                return JsonResponse({"error": "Zona inválida"}, status=400)
+
+            # Contar habitaciones existentes en esa zona
+            cantidad = Habitacion.objects.filter(zona=zona).count()
+            nomenclatura = f"{prefijos[zona]}{cantidad + 1}"
+
+            # Crear la habitación
+            habitacion = Habitacion.objects.create(
+                nomenclatura=nomenclatura,
+                estado=True,
+                tamaño=tamaño,
+                zona=zona,
+                desactivada=False
+            )
+
+            return JsonResponse({
+                "success": True,
+                "nomenclatura": habitacion.nomenclatura,
+                "estado": habitacion.estado,
+                "tamaño": habitacion.tamaño,
+                "zona": habitacion.zona
+            })
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Método no permitido"}, status=405)
+
+def obtener_habitaciones_por_zona(request, zona):
+    habitaciones = Habitacion.objects.filter(zona=zona).values(
+        'nomenclatura', 'estado', 'tamaño', 'desactivada', 'zona'
+    )
+    return JsonResponse({'habitaciones': list(habitaciones)})
+
+@csrf_exempt
+def editar_habitacion(request, nomenclatura):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            habitacion = Habitacion.objects.get(nomenclatura=nomenclatura)
+            habitacion.tamaño = data.get('tamaño', habitacion.tamaño)
+            habitacion.desactivada = data.get('desactivada', habitacion.desactivada)
+            habitacion.save()
+            return JsonResponse({'success': True})
+        except Habitacion.DoesNotExist:
+            return JsonResponse({'error': 'Habitación no encontrada'}, status=404)
+        
+def listar_habitaciones(request):
+    zona = request.GET.get('zona')
+    if not zona:
+        return JsonResponse({"error": "Debe especificar una zona"}, status=400)
+
+    habitaciones = Habitacion.objects.filter(zona=zona)
+    lista = []
+
+    for hab in habitaciones:
+        for i in range(1, hab.tamaño + 1):
+            lista.append(f"{hab.nomenclatura}_{i}")
+
+    return JsonResponse({"habitaciones": lista})
