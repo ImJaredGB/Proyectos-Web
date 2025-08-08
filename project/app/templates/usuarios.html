@@ -104,6 +104,37 @@
             document.getElementById('modal-info').style.display = 'none';
         };
 
+        // Cargar usuarios desde el backend y mostrarlos en la tabla
+        function cargarUsuarios() {
+            fetch('/api/usuarios/listar/')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector(".tabla-habitaciones tbody");
+                    tbody.innerHTML = "";
+
+                    data.usuarios.forEach(usuario => {
+                        const fila = document.createElement("tr");
+
+                        fila.innerHTML = `
+                            <td>${usuario.nombre || "-"}</td>
+                            <td>${usuario.apellido || "-"}</td>
+                            <td>${usuario.documento || "-"}</td>
+                            <td>${usuario.llegada || "-"}</td>
+                            <td>${usuario.salida || "-"}</td>
+                            <td><button onclick='mostrarModalInfo(${JSON.stringify(usuario)})'>Ver más</button></td>
+                            <td>${usuario.estado ? "Activo" : "Inactivo"}</td>
+                        `;
+
+                        tbody.appendChild(fila);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al cargar usuarios:", error);
+                });
+        }
+
+        // Llamar al cargar la página
+        window.onload = cargarUsuarios;
     </script>
 </body>
 </html>

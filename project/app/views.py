@@ -198,3 +198,23 @@ def listar_literas(request):
     literas = Litera.objects.filter(habitacion__zona=zona).values_list("codigo", flat=True)
 
     return JsonResponse({"literas": list(literas)})
+
+def listar_usuarios(request):
+    if request.method == "GET":
+        residentes = Residente.objects.select_related('habitacion', 'litera').all()
+        data = []
+
+        for r in residentes:
+            data.append({
+                "nombre": r.nombre,
+                "apellido": r.apellido,
+                "documento": r.n_documento,
+                "llegada": r.llegada.strftime("%Y-%m-%d") if r.llegada else None,
+                "salida": r.salida.strftime("%Y-%m-%d") if r.salida else None,
+                "zona": r.habitacion.zona if r.habitacion else "",
+                "habitacion": r.habitacion.nomenclatura if r.habitacion else "",
+                "litera": r.litera.codigo if r.litera else "",
+                "estado": r.estado if hasattr(r, "estado") else True
+            })
+
+        return JsonResponse({"usuarios": data})

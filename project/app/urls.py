@@ -14,4 +14,5 @@ urlpatterns = [
     path('api/habitaciones/<str:zona>/', obtener_habitaciones_por_zona, name='habitaciones_por_zona'),
     path('api/habitaciones/editar/<str:nomenclatura>/', editar_habitacion, name='editar_habitacion'),
     path('api/literas/listar/', listar_literas, name='listar_literas'),
+    path('api/usuarios/listar/', listar_usuarios, name='listar_usuarios'),
 ]
