@@ -361,6 +361,37 @@
             alert("Error en la solicitud.");
         });
     });
+
+    // Activar/desactivar desde la tabla
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('desactivar-btn')) {
+            const nomenclatura = e.target.getAttribute('data-nomenclatura');
+            const zonaActiva = document.querySelector('.sidebar ul li a.active');
+            const zona = zonaActiva ? zonaActiva.textContent.trim() : "Castillo";
+
+            const desactivar = e.target.textContent.trim() === "Desactivar";
+
+            fetch(`/api/habitaciones/editar/${nomenclatura}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ desactivada: desactivar })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    cargarHabitacionesDesdeBackend(zona);
+                } else {
+                    alert("Error al actualizar habitación: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Error en la solicitud.");
+            });
+        }
+    });
     </script>
 </body>
 </html>

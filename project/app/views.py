@@ -111,28 +111,28 @@ def usuarios_view(request):
 # APIs
 @csrf_exempt
 def crear_habitacion(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             data = json.loads(request.body)
-            zona = data.get('zona')
-            tamaño = int(data.get('tamaño'))
+            zona = data.get("zona")
+            tamaño = int(data.get("tamaño"))
 
-            # Validar zona
+            # Generar nomenclatura automática
             prefijos = {
                 "Castillo": "CP",
                 "Restaurante": "RP",
                 "Piso": "PP",
                 "Vilanova": "VP"
             }
+            prefijo = prefijos.get(zona)
+            if not prefijo:
+                return JsonResponse({"success": False, "error": "Zona inválida"})
 
-            if zona not in prefijos:
-                return JsonResponse({"error": "Zona inválida"}, status=400)
+            # Buscar cuántas habitaciones hay con ese prefijo
+            existentes = Habitacion.objects.filter(zona=zona).count()
+            numero = existentes + 1
+            nomenclatura = f"{prefijo}{numero}"
 
-            # Contar habitaciones existentes en esa zona
-            cantidad = Habitacion.objects.filter(zona=zona).count()
-            nomenclatura = f"{prefijos[zona]}{cantidad + 1}"
-
-            # Crear la habitación
             habitacion = Habitacion.objects.create(
                 nomenclatura=nomenclatura,
                 estado=True,
@@ -141,17 +141,23 @@ def crear_habitacion(request):
                 desactivada=False
             )
 
+            # Crear 4 literas para esta habitación, pero activar solo según el tamaño
+            for i in range(1, 5):
+                Litera.objects.create(
+                    codigo=f"{nomenclatura}_{i}",
+                    estado=(i <= tamaño),
+                    habitacion=habitacion
+                )
+
             return JsonResponse({
                 "success": True,
-                "nomenclatura": habitacion.nomenclatura,
-                "estado": habitacion.estado,
-                "tamaño": habitacion.tamaño,
-                "zona": habitacion.zona
+                "nomenclatura": nomenclatura,
+                "tamaño": tamaño,
+                "zona": zona
             })
 
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-
+            return JsonResponse({"success": False, "error": str(e)})
     return JsonResponse({"error": "Método no permitido"}, status=405)
 
 def obtener_habitaciones_por_zona(request, zona):
@@ -160,29 +166,35 @@ def obtener_habitaciones_por_zona(request, zona):
     )
     return JsonResponse({'habitaciones': list(habitaciones)})
 
+
 @csrf_exempt
 def editar_habitacion(request, nomenclatura):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             habitacion = Habitacion.objects.get(nomenclatura=nomenclatura)
-            habitacion.tamaño = data.get('tamaño', habitacion.tamaño)
+            nuevo_tamaño = int(data.get('tamaño', habitacion.tamaño))
+
+            # Activar solo las literas dentro del nuevo tamaño, desactivar las demás
+            for i in range(1, 5):
+                codigo_litera = f"{habitacion.nomenclatura}_{i}"
+                litera = habitacion.literas.filter(codigo=codigo_litera).first()
+                if litera:
+                    litera.estado = (i <= nuevo_tamaño)
+                    litera.save()
+
+            habitacion.tamaño = nuevo_tamaño
             habitacion.desactivada = data.get('desactivada', habitacion.desactivada)
             habitacion.save()
             return JsonResponse({'success': True})
         except Habitacion.DoesNotExist:
             return JsonResponse({'error': 'Habitación no encontrada'}, status=404)
         
-def listar_habitaciones(request):
-    zona = request.GET.get('zona')
+def listar_literas(request):
+    zona = request.GET.get("zona")
     if not zona:
-        return JsonResponse({"error": "Debe especificar una zona"}, status=400)
+        return JsonResponse({"error": "Zona no especificada"}, status=400)
 
-    habitaciones = Habitacion.objects.filter(zona=zona)
-    lista = []
+    literas = Litera.objects.filter(habitacion__zona=zona).values_list("codigo", flat=True)
 
-    for hab in habitaciones:
-        for i in range(1, hab.tamaño + 1):
-            lista.append(f"{hab.nomenclatura}_{i}")
-
-    return JsonResponse({"habitaciones": lista})
+    return JsonResponse({"literas": list(literas)})

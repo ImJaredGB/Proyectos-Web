@@ -186,75 +186,78 @@
             const anio = 2025;
             const dias = diasEnMes(mesIndex + 1, anio);
 
-            // Habitaciones y usuarios por zona (deberán ser cargados dinámicamente)
-            let habitaciones = [];  // Deberán ser cargadas dinámicamente
-            let usuariosZona = [];  // Deberán ser cargados dinámicamente
+            fetch(`/api/literas/listar/?zona=${encodeURIComponent(zonaActual)}`)
+                .then(res => res.json())
+                .then(data => {
+                    let literas = data.literas || [];
+                    let usuariosZona = []; // A futuro se cargará desde la base de datos, pero literas se mostrarán igual
 
-            // Filtra usuarios por búsqueda
-            if (searchText) {
-                usuariosZona = usuariosZona.filter(u =>
-                    u.nombre.toLowerCase().includes(searchText) ||
-                    u.apellido.toLowerCase().includes(searchText) ||
-                    u.habitacion.toLowerCase().includes(searchText)
-                );
-
-                // Si el texto de búsqueda coincide con algún código de habitación, filtra habitaciones
-                const habFiltradas = habitaciones.filter(hab =>
-                    hab.toLowerCase().includes(searchText)
-                );
-                if (habFiltradas.length > 0) {
-                    habitaciones = habFiltradas;
-                }
-            }
-
-            let tabla = '<table><thead><tr>';
-            tabla += '<th>Habitaciones</th>';
-            for (let d = 1; d <= dias; d++) {
-                tabla += `<th>${d}</th>`;
-            }
-            tabla += '</tr></thead><tbody>';
-
-            habitaciones.forEach(hab => {
-                tabla += `<tr><td>${hab}</td>`;
-                let d = 1;
-                // Extrae código y número de litera
-                const [codigo, litera] = hab.split('_');
-                const reservas = usuariosZona.filter(u => u.habitacion === codigo && String(u.litera) === litera);
-                while (d <= dias) {
-                    const reserva = reservas.find(u => {
-                        const fechaIn = new Date(u.llegada);
-                        const fechaOut = new Date(u.salida);
-                        const fechaActual = new Date(anio, mesIndex, d);
-                        return (
-                            fechaActual >= fechaIn &&
-                            fechaActual <= fechaOut &&
-                            fechaActual.getMonth() === mesIndex
+                    // Filtra literas por búsqueda
+                    if (searchText) {
+                        literas = literas.filter(l =>
+                            l.toLowerCase().includes(searchText)
                         );
+                    }
+
+                    let tabla = '<table><thead><tr>';
+                    tabla += '<th>Literas</th>';
+                    for (let d = 1; d <= dias; d++) {
+                        tabla += `<th>${d}</th>`;
+                    }
+                    tabla += '</tr></thead><tbody>';
+
+                    literas.forEach(litera => {
+                        tabla += `<tr><td>${litera}</td>`;
+                        let d = 1;
+                        const [codigo, literaNum] = litera.split('_');
+                        const reservas = usuariosZona.filter(u => u.habitacion === codigo && String(u.litera) === literaNum);
+
+                        if (reservas.length === 0) {
+                            for (let i = 1; i <= dias; i++) {
+                                tabla += `<td></td>`;
+                            }
+                            return;
+                        }
+
+                        while (d <= dias) {
+                            const reserva = reservas.find(u => {
+                                const fechaIn = new Date(u.llegada);
+                                const fechaOut = new Date(u.salida);
+                                const fechaActual = new Date(anio, mesIndex, d);
+                                return (
+                                    fechaActual >= fechaIn &&
+                                    fechaActual <= fechaOut &&
+                                    fechaActual.getMonth() === mesIndex
+                                );
+                            });
+
+                            if (reserva) {
+                                const fechaIn = new Date(reserva.llegada);
+                                const fechaOut = new Date(reserva.salida);
+                                const start = (fechaIn.getMonth() === mesIndex) ? fechaIn.getDate() : 1;
+                                const end = (fechaOut.getMonth() === mesIndex) ? fechaOut.getDate() : dias;
+                                const colspan = end - d + 1;
+
+                                tabla += `<td colspan="${colspan}">
+                                    <div class="reserva-usuario">
+                                        ${reserva.nombre}
+                                    </div>
+                                </td>`;
+                                d = end + 1;
+                            } else {
+                                tabla += `<td></td>`;
+                                d++;
+                            }
+                        }
+                        tabla += '</tr>';
                     });
 
-                    if (reserva) {
-                        const fechaIn = new Date(reserva.llegada);
-                        const fechaOut = new Date(reserva.salida);
-                        const start = (fechaIn.getMonth() === mesIndex) ? fechaIn.getDate() : 1;
-                        const end = (fechaOut.getMonth() === mesIndex) ? fechaOut.getDate() : dias;
-                        const colspan = end - d + 1;
-
-                        tabla += `<td colspan="${colspan}">
-                            <div class="reserva-usuario">
-                                ${reserva.nombre}
-                            </div>
-                        </td>`;
-                        d = end + 1;
-                    } else {
-                        tabla += `<td></td>`;
-                        d++;
-                    }
-                }
-                tabla += '</tr>';
-            });
-
-            tabla += '</tbody></table>';
-            document.getElementById('tabla-mes').innerHTML = tabla;
+                    tabla += '</tbody></table>';
+                    document.getElementById('tabla-mes').innerHTML = tabla;
+                })
+                .catch(err => {
+                    console.error("Error al cargar literas:", err);
+                });
         }
 
         // Cambia el mes y la clase activa al hacer click en un mes
