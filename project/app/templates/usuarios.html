@@ -34,6 +34,7 @@
                     <tr>
                         <th>Nombres</th>
                         <th>Apellidos</th>
+                        <th>Tipo de documento</th>
                         <th>Numero de documento</th>
                         <th>Llegada</th>
                         <th>Salida</th>
@@ -50,7 +51,7 @@
         <div class="tool-sidebar">
             <ul>
                 <li><button>Agregar usuario</button></li>
-                <li><button>Editar usuario</button></li>
+                <li><button id="editar-usuario-btn">Editar usuario</button></li>
             </ul>
         </div>
     </div>
@@ -66,11 +67,72 @@
         </div>
     </div>
 
+    <div id="modal-editar-usuario" class="modal-info" style="display:none;">
+        <div class="modal-content">
+            <button id="cerrar-editar-usuario" class="close-modal-btn">✕</button>
+            <h2>Editar usuario</h2>
+            <form id="form-editar-usuario">
+                <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+                    <!-- Left column: Editar información de usuario -->
+                    <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 8px;">
+                        <h3 style="margin-top:0;">Información de usuario</h3>
+                        <label>Nombre:</label>
+                        <input type="text" id="editar-nombre" required>
+
+                        <label>Apellido:</label>
+                        <input type="text" id="editar-apellido" required>
+
+                        <label>Tipo de documento:</label>
+                        <input type="text" id="editar-tipo-documento">
+
+                        <label>Número de documento:</label>
+                        <input type="text" id="editar-documento" required>
+                        
+                        <label>Estado:</label>
+                        <select id="editar-estado">
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+
+                    </div>
+                    <!-- Right column: Asignar habitación -->
+                    <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 8px;">
+                        <h3 style="margin-top:0;">Asignar habitación</h3>
+                        <label>Zona:</label>
+                        <select id="editar-zona">
+                            <!-- Opciones de zonas se llenarán dinámicamente si aplica -->
+                        </select>
+
+                        <label>Habitación:</label>
+                        <select id="editar-habitacion"></select>
+
+                        <label>Litera:</label>
+                        <select id="editar-litera"></select>
+
+                        <label>Llegada:</label>
+                        <input type="date" id="editar-llegada">
+
+                        <label>Salida:</label>
+                        <input type="date" id="editar-salida">
+                    </div>
+                </div>
+                <!-- Buttons row -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px;">
+                    <button type="button" onclick="document.getElementById('modal-editar-usuario').style.display='none';">Cancelar</button>
+                    <button type="submit" style="margin-left:auto;">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!--Animations and functions-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
+        let usuarioSeleccionado = null;
+
         // Modal logic
         function mostrarModalInfo(usuario) {
+            usuarioSeleccionado = usuario;
             const modal = document.getElementById('modal-info');
             const modalData = document.getElementById('modal-data');
             const modalQR = document.getElementById('modal-qr');
@@ -99,6 +161,20 @@
             });
         }
 
+        function seleccionarUsuarioInfo(btn, usuario) {
+            // Reset all seleccionar buttons
+            document.querySelectorAll(".tabla-habitaciones button.seleccionar-btn").forEach(b => {
+                b.style.backgroundColor = "#1D1D1D";
+                b.style.color = "#fff";
+            });
+            // Highlight the clicked button
+            btn.style.backgroundColor = "#537854";
+            btn.style.color = "#fff";
+
+            usuarioSeleccionado = usuario;
+            console.log("Usuario seleccionado:", usuario);
+        }
+
         // Cerrar modal
         document.getElementById('close-modal').onclick = function() {
             document.getElementById('modal-info').style.display = 'none';
@@ -118,10 +194,11 @@
                         fila.innerHTML = `
                             <td>${usuario.nombre || "-"}</td>
                             <td>${usuario.apellido || "-"}</td>
+                            <td>${usuario.tipo_documento || "-"}</td>
                             <td>${usuario.documento || "-"}</td>
                             <td>${usuario.llegada || "-"}</td>
                             <td>${usuario.salida || "-"}</td>
-                            <td><button onclick='mostrarModalInfo(${JSON.stringify(usuario)})'>Ver más</button></td>
+                            <td><button onclick='mostrarModalInfo(${JSON.stringify(usuario)})'>Ver más</button><button class="seleccionar-btn" onclick='seleccionarUsuarioInfo(this, ${JSON.stringify(usuario)})'>Seleccionar</button></td>
                             <td>${usuario.estado ? "Activo" : "Inactivo"}</td>
                         `;
 
@@ -135,6 +212,94 @@
 
         // Llamar al cargar la página
         window.onload = cargarUsuarios;
+
+        document.getElementById('editar-usuario-btn').addEventListener('click', () => {
+            const modal = document.getElementById('modal-editar-usuario');
+            modal.style.display = 'flex';
+
+            if (!usuarioSeleccionado) return alert("Primero haz clic en 'Seleccionar' de un usuario.");
+
+            document.getElementById('editar-nombre').value = usuarioSeleccionado.nombre || "";
+            document.getElementById('editar-apellido').value = usuarioSeleccionado.apellido || "";
+            document.getElementById('editar-tipo-documento').value = usuarioSeleccionado.tipo_documento || "";
+            document.getElementById('editar-documento').value = usuarioSeleccionado.documento || "";
+            document.getElementById('editar-llegada').value = usuarioSeleccionado.llegada || "";
+            document.getElementById('editar-salida').value = usuarioSeleccionado.salida || "";
+            document.getElementById('editar-estado').value = usuarioSeleccionado.estado ? "Activo" : "Inactivo";
+
+            fetch('/api/habitaciones/listar/')
+                .then(response => response.json())
+                .then(data => {
+                    const habitacionSelect = document.getElementById('editar-habitacion');
+                    habitacionSelect.innerHTML = '<option value="">Seleccione</option>';
+                    data.habitaciones.forEach(h => {
+                        const option = document.createElement('option');
+                        option.value = h.nomenclatura;
+                        option.textContent = h.nomenclatura;
+                        habitacionSelect.appendChild(option);
+                    });
+
+                    if (usuarioSeleccionado.habitacion) {
+                        habitacionSelect.value = usuarioSeleccionado.habitacion;
+                        habitacionSelect.dispatchEvent(new Event('change'));
+                    }
+                });
+
+            document.getElementById('editar-habitacion').addEventListener('change', function () {
+                const habitacion = this.value;
+                fetch(`/api/literas/listar/${habitacion}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const literaSelect = document.getElementById('editar-litera');
+                        literaSelect.innerHTML = '<option value="">Seleccione</option>';
+                        data.literas.forEach(l => {
+                            const option = document.createElement('option');
+                            option.value = l.codigo;
+                            option.textContent = l.codigo;
+                            literaSelect.appendChild(option);
+                        });
+
+                        if (usuarioSeleccionado.litera) {
+                            literaSelect.value = usuarioSeleccionado.litera;
+                        }
+                    });
+            });
+        });
+
+        document.getElementById('cerrar-editar-usuario').onclick = function () {
+            document.getElementById('modal-editar-usuario').style.display = 'none';
+        };
+
+        document.getElementById('form-editar-usuario').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const payload = {
+                nombre: document.getElementById('editar-nombre').value,
+                apellido: document.getElementById('editar-apellido').value,
+                tipo_documento: document.getElementById('editar-tipo-documento').value,
+                documento: document.getElementById('editar-documento').value,
+                llegada: document.getElementById('editar-llegada').value,
+                salida: document.getElementById('editar-salida').value,
+                habitacion: document.getElementById('editar-habitacion').value,
+                litera: document.getElementById('editar-litera').value,
+                estado: document.getElementById('editar-estado').value === "Activo"
+            };
+
+            fetch(`/api/usuarios/editar/${usuarioSeleccionado.id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Usuario actualizado");
+                    document.getElementById('modal-editar-usuario').style.display = 'none';
+                    cargarUsuarios();
+                } else {
+                    alert("Error al actualizar");
+                }
+            });
+        });
     </script>
 </body>
 </html>

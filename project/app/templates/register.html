@@ -155,11 +155,11 @@
 
         <!-- Columna derecha -->
         <div class="columna">
-          <label class="etiqueta" for="n_documento">Tipo de documento</label>
-        <select id="tipo_doc" name="tipo_doc" required>
-          <option value="carnet_extranjeria" {% if request.POST.tipo_doc == "carnet_extranjeria" %}selected{% endif %}>Carné de extranjería</option>
-          <option value="dni_espanol" {% if request.POST.tipo_doc == "dni_espanol" %}selected{% endif %}>Documento de identidad español</option>
-        </select>
+            <label class="etiqueta" for="tipo_documento">Tipo de documento</label>
+          <select id="tipo_documento" name="tipo_documento" required>
+            <option value="carnet_extranjeria" {% if request.POST.tipo_documento == "carnet_extranjeria" %}selected{% endif %}>Carné de extranjería</option>
+            <option value="dni_espanol" {% if request.POST.tipo_documento == "dni_espanol" %}selected{% endif %}>Documento de identidad español</option>
+          </select>
 
           <label class="etiqueta" for="n_documento_num">Número de documento</label>
           <input type="text" id="n_documento_num" name="n_documento" pattern="[0-9A-Za-z]+" value="{{ request.POST.n_documento }}" required>

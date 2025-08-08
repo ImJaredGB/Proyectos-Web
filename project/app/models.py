@@ -56,6 +56,7 @@ class Residente(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
+    tipo_documento = models.CharField(max_length=50, null=True, blank=True)
     n_documento = models.CharField(max_length=50)
     llegada = models.DateField(null=True, blank=True)
     salida = models.DateField(null=True, blank=True)
