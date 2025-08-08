@@ -28,6 +28,7 @@ class ResidenteForm(forms.ModelForm):
         fields = [
             'nombre',
             'apellido',
+            'tipo_documento',
             'n_documento',
             'nacionalidad',
             'telefono',

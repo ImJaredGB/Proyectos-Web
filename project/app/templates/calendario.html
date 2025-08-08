@@ -176,6 +176,14 @@
             return new Date(anio, mes, 0).getDate();
         }
 
+        // Función para parsear fecha sin cambios de timezone
+        function parseFechaLocal(fechaStr) {
+            if (!fechaStr) return null;
+            const [year, month, day] = fechaStr.split('-').map(Number);
+            return new Date(year, month - 1, day); // mes en JS es base 0
+        }
+
+
         // Genera la tabla para el mes seleccionado
         function renderTablaMes(mesNombre, zonaActual, searchText = "") {
             const meses = [
@@ -186,16 +194,19 @@
             const anio = 2025;
             const dias = diasEnMes(mesIndex + 1, anio);
 
-            fetch(`/api/literas/listar/?zona=${encodeURIComponent(zonaActual)}`)
+            fetch(`/api/habitaciones/${encodeURIComponent(zonaActual)}/`)
                 .then(res => res.json())
                 .then(data => {
-                    let literas = data.literas || [];
-                    let usuariosZona = []; // A futuro se cargará desde la base de datos, pero literas se mostrarán igual
+                    let habitaciones = data.habitaciones || [];
 
-                    // Filtra literas por búsqueda
+                    // Filtrar por búsqueda
                     if (searchText) {
-                        literas = literas.filter(l =>
-                            l.toLowerCase().includes(searchText)
+                        habitaciones = habitaciones.filter(h =>
+                            h.literas.some(l => l.codigo.toLowerCase().includes(searchText)) ||
+                            h.literas.some(l => l.usuario && (
+                                l.usuario.nombre.toLowerCase().includes(searchText) ||
+                                l.usuario.apellido.toLowerCase().includes(searchText)
+                            ))
                         );
                     }
 
@@ -206,57 +217,50 @@
                     }
                     tabla += '</tr></thead><tbody>';
 
-                    literas.forEach(litera => {
-                        tabla += `<tr><td>${litera}</td>`;
-                        let d = 1;
-                        const [codigo, literaNum] = litera.split('_');
-                        const reservas = usuariosZona.filter(u => u.habitacion === codigo && String(u.litera) === literaNum);
+                    habitaciones.forEach(hab => {
+                        hab.literas.forEach(litera => {
+                            tabla += `<tr><td>${litera.codigo}</td>`;
+                            let d = 1;
 
-                        if (reservas.length === 0) {
-                            for (let i = 1; i <= dias; i++) {
-                                tabla += `<td></td>`;
-                            }
-                            return;
-                        }
-
-                        while (d <= dias) {
-                            const reserva = reservas.find(u => {
-                                const fechaIn = new Date(u.llegada);
-                                const fechaOut = new Date(u.salida);
-                                const fechaActual = new Date(anio, mesIndex, d);
-                                return (
-                                    fechaActual >= fechaIn &&
-                                    fechaActual <= fechaOut &&
-                                    fechaActual.getMonth() === mesIndex
-                                );
-                            });
-
-                            if (reserva) {
-                                const fechaIn = new Date(reserva.llegada);
-                                const fechaOut = new Date(reserva.salida);
-                                const start = (fechaIn.getMonth() === mesIndex) ? fechaIn.getDate() : 1;
-                                const end = (fechaOut.getMonth() === mesIndex) ? fechaOut.getDate() : dias;
-                                const colspan = end - d + 1;
-
-                                tabla += `<td colspan="${colspan}">
-                                    <div class="reserva-usuario">
-                                        ${reserva.nombre}
-                                    </div>
-                                </td>`;
-                                d = end + 1;
+                            if (!litera.usuario) {
+                                // Si no hay usuario, pintar celdas vacías
+                                for (let i = 1; i <= dias; i++) {
+                                    tabla += `<td></td>`;
+                                }
                             } else {
-                                tabla += `<td></td>`;
-                                d++;
+                                const fechaIn = parseFechaLocal(litera.llegada);
+                                const fechaOut = parseFechaLocal(litera.salida);
+
+                                while (d <= dias) {
+                                    const fechaActual = new Date(anio, mesIndex, d);
+
+                                    if (fechaActual >= fechaIn && fechaActual <= fechaOut) {
+                                        const start = (fechaIn.getMonth() === mesIndex) ? fechaIn.getDate() : 1;
+                                        const end = (fechaOut.getMonth() === mesIndex) ? fechaOut.getDate() : dias;
+                                        const colspan = end - d + 1;
+
+                                        tabla += `<td colspan="${colspan}">
+                                            <div class="reserva-usuario">
+                                                ${litera.usuario.nombre} ${litera.usuario.apellido}
+                                            </div>
+                                        </td>`;
+                                        d = end + 1;
+                                    } else {
+                                        tabla += `<td></td>`;
+                                        d++;
+                                    }
+                                }
                             }
-                        }
-                        tabla += '</tr>';
+
+                            tabla += '</tr>';
+                        });
                     });
 
                     tabla += '</tbody></table>';
                     document.getElementById('tabla-mes').innerHTML = tabla;
                 })
                 .catch(err => {
-                    console.error("Error al cargar literas:", err);
+                    console.error("Error al cargar literas y usuarios:", err);
                 });
         }
 

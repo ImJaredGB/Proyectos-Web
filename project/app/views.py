@@ -190,14 +190,26 @@ def editar_habitacion(request, nomenclatura):
         except Habitacion.DoesNotExist:
             return JsonResponse({'error': 'Habitación no encontrada'}, status=404)
         
-def listar_literas(request):
-    zona = request.GET.get("zona")
-    if not zona:
-        return JsonResponse({"error": "Zona no especificada"}, status=400)
+def listar_literas(request, habitacion):
+    try:
+        literas = Litera.objects.filter(habitacion__nomenclatura=habitacion)
 
-    literas = Litera.objects.filter(habitacion__zona=zona).values_list("codigo", flat=True)
+        data = []
+        for litera in literas:
+            ocupada = not litera.estado or litera.ocupantes.exists()
 
-    return JsonResponse({"literas": list(literas)})
+            data.append({
+                "codigo": litera.codigo,
+                "ocupada": ocupada,
+                "usuario": f"{litera.ocupantes.first().nombre} {litera.ocupantes.first().apellido}"
+                            if litera.ocupantes.exists() else None
+            })
+
+        return JsonResponse({"literas": data})
+    except Habitacion.DoesNotExist:
+        return JsonResponse({"error": "Habitación no encontrada"}, status=404)
+
+    return JsonResponse({"literas": data})
 
 def listar_usuarios(request):
     if request.method == "GET":
@@ -206,8 +218,10 @@ def listar_usuarios(request):
 
         for r in residentes:
             data.append({
+                "id": r.id,
                 "nombre": r.nombre,
                 "apellido": r.apellido,
+                "tipo_documento": r.tipo_documento,
                 "documento": r.n_documento,
                 "llegada": r.llegada.strftime("%Y-%m-%d") if r.llegada else None,
                 "salida": r.salida.strftime("%Y-%m-%d") if r.salida else None,
@@ -218,3 +232,101 @@ def listar_usuarios(request):
             })
 
         return JsonResponse({"usuarios": data})
+    
+@csrf_exempt
+def editar_usuario(request, usuario_id):
+    if request.method != "POST":
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        residente = Residente.objects.get(id=usuario_id)
+
+        # Actualizar datos básicos
+        residente.nombre = data.get('nombre', residente.nombre)
+        residente.apellido = data.get('apellido', residente.apellido)
+        residente.tipo_documento = data.get('tipo_documento', residente.tipo_documento)
+        residente.n_documento = data.get('documento', residente.n_documento)
+        residente.llegada = data.get('llegada', residente.llegada)
+        residente.salida = data.get('salida', residente.salida)
+        residente.estado = "Activo" if data.get('estado', True) else "Inactivo"
+
+        # Asignar habitación si se envía
+        habitacion_nom = data.get('habitacion')
+        if habitacion_nom:
+            try:
+                habitacion = Habitacion.objects.get(nomenclatura=habitacion_nom)
+                residente.habitacion = habitacion
+            except Habitacion.DoesNotExist:
+                return JsonResponse({'error': 'Habitación no encontrada'}, status=404)
+
+        # Asignar litera si se envía
+        litera_codigo = data.get('litera')
+        if litera_codigo:
+            try:
+                litera = Litera.objects.get(codigo=litera_codigo)
+                residente.litera = litera
+            except Litera.DoesNotExist:
+                return JsonResponse({'error': 'Litera no encontrada'}, status=404)
+
+        residente.save()
+
+        return JsonResponse({'success': True})
+    except Residente.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    
+def listar_zonas(request):
+    zonas = Habitacion.objects.values_list('zona', flat=True).distinct()
+    return JsonResponse({"zonas": list(zonas)})
+
+def listar_habitaciones(request):
+    zona = request.GET.get('zona')
+    if not zona:
+        return JsonResponse({"error": "Zona no especificada"}, status=400)
+
+    habitaciones = Habitacion.objects.filter(zona=zona)
+
+    data = []
+    for h in habitaciones:
+        # Verificar si todas las literas están ocupadas (estado=False)
+        todas_ocupadas = not h.literas.filter(estado=True).exists()
+
+        data.append({
+            "nomenclatura": h.nomenclatura,
+            "zona": h.zona,
+            "ocupada": todas_ocupadas  # Usamos estado como referencia
+        })
+
+    return JsonResponse({"habitaciones": data})
+
+def obtener_habitaciones_por_zona(request, zona):
+    habitaciones = Habitacion.objects.filter(zona=zona)
+    data = []
+
+    for hab in habitaciones:
+        literas_data = []
+        for lit in hab.literas.all().order_by("codigo"):
+            ocupante = lit.ocupantes.first()
+            literas_data.append({
+                "codigo": lit.codigo,
+                "ocupada": not lit.estado or ocupante is not None,
+                "usuario": {
+                    "nombre": ocupante.nombre,
+                    "apellido": ocupante.apellido,
+                    "documento": ocupante.n_documento
+                } if ocupante else None,
+                "llegada": ocupante.llegada.strftime("%Y-%m-%d") if ocupante and ocupante.llegada else None,
+                "salida": ocupante.salida.strftime("%Y-%m-%d") if ocupante and ocupante.salida else None
+            })
+
+        data.append({
+            "nomenclatura": hab.nomenclatura,
+            "estado": 1 if hab.estado else 0,
+            "tamaño": hab.tamaño,
+            "desactivada": hab.desactivada,
+            "literas": literas_data
+        })
+
+    return JsonResponse({"habitaciones": data})

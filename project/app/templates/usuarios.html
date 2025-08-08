@@ -214,11 +214,15 @@
         window.onload = cargarUsuarios;
 
         document.getElementById('editar-usuario-btn').addEventListener('click', () => {
+            if (!usuarioSeleccionado) {
+                alert("Primero haz clic en 'Seleccionar' de un usuario.");
+                return;
+            }
+
             const modal = document.getElementById('modal-editar-usuario');
             modal.style.display = 'flex';
 
-            if (!usuarioSeleccionado) return alert("Primero haz clic en 'Seleccionar' de un usuario.");
-
+            // Rellenar campos de usuario
             document.getElementById('editar-nombre').value = usuarioSeleccionado.nombre || "";
             document.getElementById('editar-apellido').value = usuarioSeleccionado.apellido || "";
             document.getElementById('editar-tipo-documento').value = usuarioSeleccionado.tipo_documento || "";
@@ -227,44 +231,96 @@
             document.getElementById('editar-salida').value = usuarioSeleccionado.salida || "";
             document.getElementById('editar-estado').value = usuarioSeleccionado.estado ? "Activo" : "Inactivo";
 
-            fetch('/api/habitaciones/listar/')
+            // Cargar zonas
+            fetch('/api/zonas/listar/')
+                .then(response => response.json())
+                .then(data => {
+                    const zonaSelect = document.getElementById('editar-zona');
+                    zonaSelect.innerHTML = '<option value="">Seleccione</option>';
+
+                    (data.zonas || []).forEach(z => {
+                        const nombreZona = z.nombre || z; // depende del formato de tu API
+                        const option = document.createElement('option');
+                        option.value = nombreZona;
+                        option.textContent = nombreZona;
+                        zonaSelect.appendChild(option);
+                    });
+
+                    // Seleccionar zona del usuario y cargar habitaciones
+                    if (usuarioSeleccionado.zona) {
+                        zonaSelect.value = usuarioSeleccionado.zona;
+                        cargarHabitaciones(usuarioSeleccionado.zona, usuarioSeleccionado.habitacion);
+                    }
+                });
+
+            // Listener para cambio de zona
+            document.getElementById('editar-zona').onchange = function () {
+                const zona = this.value;
+                if (zona) {
+                    cargarHabitaciones(zona);
+                } else {
+                    document.getElementById('editar-habitacion').innerHTML = '<option value="">Seleccione</option>';
+                    document.getElementById('editar-litera').innerHTML = '<option value="">Seleccione</option>';
+                }
+            };
+        });
+
+        // Función para cargar habitaciones según zona
+        function cargarHabitaciones(zona, habitacionPreseleccionada = "") {
+            fetch(`/api/habitaciones/listar/?zona=${zona}`)
                 .then(response => response.json())
                 .then(data => {
                     const habitacionSelect = document.getElementById('editar-habitacion');
                     habitacionSelect.innerHTML = '<option value="">Seleccione</option>';
-                    data.habitaciones.forEach(h => {
-                        const option = document.createElement('option');
-                        option.value = h.nomenclatura;
-                        option.textContent = h.nomenclatura;
-                        habitacionSelect.appendChild(option);
+
+                    (data.habitaciones || []).forEach(h => {
+                        // Si backend no manda "ocupada", no filtrar
+                        if (h.ocupada === undefined || !h.ocupada) {
+                            const option = document.createElement('option');
+                            option.value = h.nomenclatura;
+                            option.textContent = h.nomenclatura;
+                            habitacionSelect.appendChild(option);
+                        }
                     });
 
-                    if (usuarioSeleccionado.habitacion) {
-                        habitacionSelect.value = usuarioSeleccionado.habitacion;
-                        habitacionSelect.dispatchEvent(new Event('change'));
+                    if (habitacionPreseleccionada) {
+                        habitacionSelect.value = habitacionPreseleccionada;
+                        cargarLiteras(habitacionPreseleccionada, usuarioSeleccionado.litera);
                     }
-                });
 
-            document.getElementById('editar-habitacion').addEventListener('change', function () {
-                const habitacion = this.value;
-                fetch(`/api/literas/listar/${habitacion}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const literaSelect = document.getElementById('editar-litera');
-                        literaSelect.innerHTML = '<option value="">Seleccione</option>';
-                        data.literas.forEach(l => {
+                    habitacionSelect.onchange = function () {
+                        const hab = this.value;
+                        if (hab) {
+                            cargarLiteras(hab);
+                        } else {
+                            document.getElementById('editar-litera').innerHTML = '<option value="">Seleccione</option>';
+                        }
+                    };
+                });
+        }
+
+        // Función para cargar literas según habitación
+        function cargarLiteras(habitacion, literaPreseleccionada = "") {
+            fetch(`/api/literas/listar/${habitacion}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const literaSelect = document.getElementById('editar-litera');
+                    literaSelect.innerHTML = '<option value="">Seleccione</option>';
+
+                    (data.literas || []).forEach(l => {
+                        if (l.ocupada === undefined || !l.ocupada) {
                             const option = document.createElement('option');
                             option.value = l.codigo;
                             option.textContent = l.codigo;
                             literaSelect.appendChild(option);
-                        });
-
-                        if (usuarioSeleccionado.litera) {
-                            literaSelect.value = usuarioSeleccionado.litera;
                         }
                     });
-            });
-        });
+
+                    if (literaPreseleccionada) {
+                        literaSelect.value = literaPreseleccionada;
+                    }
+                });
+        }
 
         document.getElementById('cerrar-editar-usuario').onclick = function () {
             document.getElementById('modal-editar-usuario').style.display = 'none';
@@ -295,6 +351,7 @@
                     alert("Usuario actualizado");
                     document.getElementById('modal-editar-usuario').style.display = 'none';
                     cargarUsuarios();
+                    location.reload();
                 } else {
                     alert("Error al actualizar");
                 }

@@ -11,8 +11,11 @@ urlpatterns = [
 
     #URL para las APIs
     path('api/habitaciones/crear/', crear_habitacion, name='crear_habitacion'),
+    path('api/habitaciones/listar/', listar_habitaciones, name='listar_habitaciones'),
     path('api/habitaciones/<str:zona>/', obtener_habitaciones_por_zona, name='habitaciones_por_zona'),
     path('api/habitaciones/editar/<str:nomenclatura>/', editar_habitacion, name='editar_habitacion'),
-    path('api/literas/listar/', listar_literas, name='listar_literas'),
+    path('api/literas/listar/<str:habitacion>/', listar_literas, name='listar_literas'),
     path('api/usuarios/listar/', listar_usuarios, name='listar_usuarios'),
+    path('api/usuarios/editar/<int:usuario_id>/', editar_usuario, name='editar_usuario'),
+    path('api/zonas/listar/', listar_zonas, name='listar_zonas'),
 ]
