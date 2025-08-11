@@ -156,12 +156,44 @@
         habitaciones.forEach((hab, idx) => {
             const estadoTxt = hab.estado === 1 ? "Disponible" : "No disponible";
             const tamañoTxt = `${hab.tamaño} litera${hab.tamaño > 1 ? "s" : ""}`;
-            const disponibilidadTxt = "-";
+            // Calcular literas ocupadas: con usuario o estado === false
+            let ocupadas = 0;
+            if (Array.isArray(hab.literas)) {
+                ocupadas = hab.literas.filter(lit => lit.usuario || lit.estado === false).length;
+            }
+            const disponibles = hab.tamaño - ocupadas;
+            const disponibilidadTxt = `${disponibles} de ${hab.tamaño} disponibles`;
             const panelId = `panel-${zona}-${hab.nomenclatura}`;
 
             // Desactivada: agrega clase y deshabilita botones
             const desactivada = hab.desactivada ? "desactivada" : "";
             const disableBtns = hab.desactivada ? "disabled" : "";
+
+            // Panel literas: usar hab.literas si existe, si no, mostrar filas vacías como antes
+            let literasRows = "";
+            if (Array.isArray(hab.literas)) {
+                literasRows = hab.literas.map(lit => {
+                    return `
+                        <tr>
+                            <td>${lit.codigo || "-"}</td>
+                            <td>${lit.usuario && lit.usuario.nombre ? lit.usuario.nombre : "-"}</td>
+                            <td>${lit.usuario && lit.usuario.apellido ? lit.usuario.apellido : "-"}</td>
+                            <td>${lit.usuario && lit.usuario.documento ? lit.usuario.documento : "-"}</td>
+                        </tr>
+                    `;
+                }).join("");
+            } else {
+                literasRows = Array.from({length: hab.tamaño}, (_, i) => {
+                    return `
+                        <tr>
+                            <td>${hab.nomenclatura}_${i+1}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                    `;
+                }).join("");
+            }
 
             tabla.innerHTML += `
                 <tr class="${desactivada}">
@@ -193,16 +225,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${Array.from({length: hab.tamaño}, (_, i) => {
-                                        return `
-                                            <tr>
-                                                <td>${hab.nomenclatura}_${i+1}</td>
-                                                <td>-</td>
-                                                <td>-</td>
-                                                <td>-</td>
-                                            </tr>
-                                        `;
-                                    }).join("")}
+                                    ${literasRows}
                                 </tbody>
                             </table>
                         </div>
