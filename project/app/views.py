@@ -174,7 +174,12 @@ def editar_habitacion(request, nomenclatura):
             data = json.loads(request.body)
             habitacion = Habitacion.objects.get(nomenclatura=nomenclatura)
             nuevo_tamaño = int(data.get('tamaño', habitacion.tamaño))
-
+            literas_ocupadas = habitacion.literas.filter(ocupantes__isnull=False).count()
+            if nuevo_tamaño < literas_ocupadas:
+                return JsonResponse({
+                    'error': f"No puedes reducir la habitación a {nuevo_tamaño} literas, ya hay {literas_ocupadas} residentes."
+                }, status=400)
+            
             # Activar solo las literas dentro del nuevo tamaño, desactivar las demás
             for i in range(1, 5):
                 codigo_litera = f"{habitacion.nomenclatura}_{i}"
@@ -307,11 +312,21 @@ def obtener_habitaciones_por_zona(request, zona):
 
     for hab in habitaciones:
         literas_data = []
-        for lit in hab.literas.all().order_by("codigo"):
+        disponibles = 0
+
+        # Filtramos literas activas primero
+        literas_activas = hab.literas.filter(estado=True).order_by("codigo")
+
+        for lit in literas_activas:
             ocupante = lit.ocupantes.first()
+            esta_ocupada = ocupante is not None
+
+            if not esta_ocupada:
+                disponibles += 1
+
             literas_data.append({
                 "codigo": lit.codigo,
-                "ocupada": not lit.estado or ocupante is not None,
+                "ocupada": esta_ocupada,
                 "usuario": {
                     "nombre": ocupante.nombre,
                     "apellido": ocupante.apellido,
@@ -321,11 +336,16 @@ def obtener_habitaciones_por_zona(request, zona):
                 "salida": ocupante.salida.strftime("%Y-%m-%d") if ocupante and ocupante.salida else None
             })
 
+        # Si no hay disponibles, marcamos la habitación como no disponible
+        hab.estado = disponibles > 0
+        hab.save(update_fields=["estado"])
+
         data.append({
             "nomenclatura": hab.nomenclatura,
             "estado": 1 if hab.estado else 0,
             "tamaño": hab.tamaño,
             "desactivada": hab.desactivada,
+            "disponibles": disponibles,
             "literas": literas_data
         })
 
