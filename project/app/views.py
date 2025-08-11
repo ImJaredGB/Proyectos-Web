@@ -208,17 +208,21 @@ def editar_habitacion(request, nomenclatura):
 def listar_literas(request, habitacion):
     try:
         literas = Litera.objects.filter(habitacion__nomenclatura=habitacion)
-
+        
         data = []
         for litera in literas:
             ocupada = litera.ocupantes.exists()
+            desactivada = not litera.estado
 
-            data.append({
-                "codigo": litera.codigo,
-                "ocupada": ocupada,
-                "usuario": f"{litera.ocupantes.first().nombre} {litera.ocupantes.first().apellido}"
-                            if ocupada else None
-            })
+            if not ocupada and not desactivada:
+                data.append({
+                    "codigo": litera.codigo,
+                    "ocupada": ocupada,
+                    "usuario": (
+                        f"{litera.ocupantes.first().nombre} {litera.ocupantes.first().apellido}"
+                        if ocupada else None
+                    )
+                })
 
         return JsonResponse({"literas": data})
     except Habitacion.DoesNotExist:
