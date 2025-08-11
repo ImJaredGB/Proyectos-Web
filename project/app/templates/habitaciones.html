@@ -360,29 +360,50 @@
     document.getElementById("btn-editar").addEventListener("click", function () {
         const zona = document.getElementById("editar-zona-select").value;
         const nomenclatura = document.getElementById("editar-habitacion-select").value;
-        const tamaño = document.getElementById("editar-tamaño-select").value;
+        const tamaño = parseInt(document.getElementById("editar-tamaño-select").value, 10);
         const desactivada = document.getElementById("editar-desactivada-checkbox").checked;
 
-        fetch(`/api/habitaciones/editar/${nomenclatura}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ tamaño, desactivada })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById("formulario-editar-habitacion").style.display = "none";
-                cargarHabitacionesDesdeBackend(zona);
-            } else {
-                alert("Error al editar habitación: " + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert("Error en la solicitud.");
-        });
+        // Verificar ocupantes antes de enviar
+        fetch(`/api/habitaciones/${zona}/`)
+            .then(res => res.json())
+            .then(data => {
+                const hab = data.habitaciones.find(h => h.nomenclatura === nomenclatura);
+                if (!hab) {
+                    alert("Habitación no encontrada.");
+                    return;
+                }
+
+                const literasOcupadas = hab.literas.filter(l => l.ocupada).length;
+
+                // Bloqueo: reducción de tamaño con residentes
+                if (tamaño < literasOcupadas) {
+                    alert(`No puedes reducir la habitación a ${tamaño} literas, ya hay ${literasOcupadas} residentes.`);
+                    return;
+                }
+
+                // Bloqueo: desactivar con residentes
+                if (desactivada && literasOcupadas > 0) {
+                    alert(`No puedes desactivar la habitación, ya hay ${literasOcupadas} residentes.`);
+                    return;
+                }
+
+                // Si pasa validaciones → enviar cambios
+                fetch(`/api/habitaciones/editar/${nomenclatura}/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tamaño, desactivada })
+                })
+                .then(response => response.json().then(body => ({ status: response.status, body })))
+                .then(({ status, body }) => {
+                    if (status === 200 && body.success) {
+                        alert("Habitación actualizada correctamente");
+                        document.getElementById("formulario-editar-habitacion").style.display = "none";
+                        cargarHabitacionesDesdeBackend(zona);
+                    } else {
+                        alert(body.error || "Ocurrió un error al actualizar la habitación");
+                    }
+                });
+            });
     });
 
     // Activar/desactivar desde la tabla
@@ -406,7 +427,7 @@
                 if (data.success) {
                     cargarHabitacionesDesdeBackend(zona);
                 } else {
-                    alert("Error al actualizar habitación: " + data.error);
+                    alert(data.error);
                 }
             })
             .catch(error => {
@@ -415,6 +436,7 @@
             });
         }
     });
+    
     </script>
 </body>
 </html>

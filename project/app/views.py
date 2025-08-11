@@ -8,8 +8,6 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
-
-
 # Vistas html
 def registro_residente_view(request):
     error_message = None
@@ -79,9 +77,6 @@ def login_view(request):
 def logout_view(request):
     request.session.flush()  # Elimina todos los datos de sesión
     return login_view(request)
-
-from django.shortcuts import render, redirect
-from .decorators import login_required_custom
 
 @login_required_custom
 def home_view(request):
@@ -160,61 +155,159 @@ def crear_habitacion(request):
             return JsonResponse({"success": False, "error": str(e)})
     return JsonResponse({"error": "Método no permitido"}, status=405)
 
-def obtener_habitaciones_por_zona(request, zona):
-    habitaciones = Habitacion.objects.filter(zona=zona).values(
-        'nomenclatura', 'estado', 'tamaño', 'desactivada', 'zona'
-    )
-    return JsonResponse({'habitaciones': list(habitaciones)})
-
-
 @csrf_exempt
 def editar_habitacion(request, nomenclatura):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             habitacion = Habitacion.objects.get(nomenclatura=nomenclatura)
-            nuevo_tamaño = int(data.get('tamaño', habitacion.tamaño))
-            literas_ocupadas = habitacion.literas.filter(ocupantes__isnull=False).count()
-            if nuevo_tamaño < literas_ocupadas:
-                return JsonResponse({
-                    'error': f"No puedes reducir la habitación a {nuevo_tamaño} literas, ya hay {literas_ocupadas} residentes."
-                }, status=400)
-            
-            # Activar solo las literas dentro del nuevo tamaño, desactivar las demás
-            for i in range(1, 5):
-                codigo_litera = f"{habitacion.nomenclatura}_{i}"
-                litera = habitacion.literas.filter(codigo=codigo_litera).first()
-                if litera:
-                    litera.estado = (i <= nuevo_tamaño)
-                    litera.save()
 
-            habitacion.tamaño = nuevo_tamaño
-            habitacion.desactivada = data.get('desactivada', habitacion.desactivada)
+            nuevo_tamaño = habitacion.tamaño
+            if 'tamaño' in data:
+                nuevo_tamaño = int(data.get('tamaño', habitacion.tamaño))
+                if nuevo_tamaño < habitacion.tamaño:
+                    for i in range(nuevo_tamaño + 1, 5):
+                        codigo_litera = f"{habitacion.nomenclatura}_{i}"
+                        litera = habitacion.literas.filter(codigo=codigo_litera).first()
+                        if litera and litera.ocupantes.exists():
+                            return JsonResponse({
+                                'success': False,
+                                'error': f"No puedes reducir la habitación porque la litera {i} tiene un residente."
+                            }, status=400)
+
+            desactivada_nueva = habitacion.desactivada
+            if 'desactivada' in data:
+                desactivada_nueva = data['desactivada']
+                if desactivada_nueva is True:
+                    hay_ocupantes = habitacion.literas.filter(
+                        ocupantes__isnull=False
+                    ).exists()
+                    if hay_ocupantes:
+                        return JsonResponse({
+                            'success': False,
+                            'error': "No puedes desactivar la habitación, ya hay residentes alojados."
+                        }, status=400)
+
+            # Actualizar literas si tamaño cambia
+            if nuevo_tamaño != habitacion.tamaño:
+                for i in range(1, 5):
+                    codigo_litera = f"{habitacion.nomenclatura}_{i}"
+                    litera = habitacion.literas.filter(codigo=codigo_litera).first()
+                    if litera:
+                        litera.estado = (i <= nuevo_tamaño)
+                        litera.save()
+                habitacion.tamaño = nuevo_tamaño
+
+            habitacion.desactivada = desactivada_nueva
             habitacion.save()
             return JsonResponse({'success': True})
+
         except Habitacion.DoesNotExist:
             return JsonResponse({'error': 'Habitación no encontrada'}, status=404)
-        
+
 def listar_literas(request, habitacion):
     try:
         literas = Litera.objects.filter(habitacion__nomenclatura=habitacion)
 
         data = []
         for litera in literas:
-            ocupada = not litera.estado or litera.ocupantes.exists()
+            ocupada = litera.ocupantes.exists()
 
             data.append({
                 "codigo": litera.codigo,
                 "ocupada": ocupada,
                 "usuario": f"{litera.ocupantes.first().nombre} {litera.ocupantes.first().apellido}"
-                            if litera.ocupantes.exists() else None
+                            if ocupada else None
             })
 
         return JsonResponse({"literas": data})
     except Habitacion.DoesNotExist:
         return JsonResponse({"error": "Habitación no encontrada"}, status=404)
 
-    return JsonResponse({"literas": data})
+def listar_habitaciones(request):
+    zona = request.GET.get('zona')
+    if not zona:
+        return JsonResponse({"error": "Zona no especificada"}, status=400)
+
+    habitaciones = Habitacion.objects.filter(zona=zona)
+    data = []
+
+    for hab in habitaciones:
+        literas_activas = hab.literas.filter(estado=True).order_by("codigo")
+        disponibles = 0
+        literas_data = []
+
+        for lit in literas_activas:
+            ocupante = lit.ocupantes.first()
+            esta_ocupada = ocupante is not None
+            if not esta_ocupada:
+                disponibles += 1
+
+            literas_data.append({
+                "codigo": lit.codigo,
+                "ocupada": esta_ocupada,
+                "usuario": {
+                    "nombre": ocupante.nombre,
+                    "apellido": ocupante.apellido,
+                    "documento": ocupante.n_documento
+                } if ocupante else None,
+                "llegada": ocupante.llegada.strftime("%Y-%m-%d") if ocupante and ocupante.llegada else None,
+                "salida": ocupante.salida.strftime("%Y-%m-%d") if ocupante and ocupante.salida else None
+            })
+
+        estado_calculado = disponibles > 0
+
+        data.append({
+            "nomenclatura": hab.nomenclatura,
+            "zona": hab.zona,
+            "estado": 1 if estado_calculado else 0,
+            "tamaño": hab.tamaño,
+            "desactivada": hab.desactivada,
+            "disponibles": disponibles,
+            "literas": literas_data
+        })
+
+    return JsonResponse({"habitaciones": data})
+
+def obtener_habitaciones_por_zona(request, zona):
+    habitaciones = Habitacion.objects.filter(zona=zona)
+    data = []
+
+    for hab in habitaciones:
+        literas_activas = hab.literas.filter(estado=True).order_by("codigo")
+        disponibles = 0
+        literas_data = []
+
+        for lit in literas_activas:
+            ocupante = lit.ocupantes.first()
+            esta_ocupada = ocupante is not None
+            if not esta_ocupada:
+                disponibles += 1
+
+            literas_data.append({
+                "codigo": lit.codigo,
+                "ocupada": esta_ocupada,
+                "usuario": {
+                    "nombre": ocupante.nombre,
+                    "apellido": ocupante.apellido,
+                    "documento": ocupante.n_documento
+                } if ocupante else None,
+                "llegada": ocupante.llegada.strftime("%Y-%m-%d") if ocupante and ocupante.llegada else None,
+                "salida": ocupante.salida.strftime("%Y-%m-%d") if ocupante and ocupante.salida else None
+            })
+
+        estado_calculado = disponibles > 0
+
+        data.append({
+            "nomenclatura": hab.nomenclatura,
+            "estado": 1 if estado_calculado else 0,
+            "tamaño": hab.tamaño,
+            "desactivada": hab.desactivada,
+            "disponibles": disponibles,
+            "literas": literas_data
+        })
+
+    return JsonResponse({"habitaciones": data})
 
 def listar_usuarios(request):
     if request.method == "GET":
@@ -285,68 +378,3 @@ def editar_usuario(request, usuario_id):
 def listar_zonas(request):
     zonas = Habitacion.objects.values_list('zona', flat=True).distinct()
     return JsonResponse({"zonas": list(zonas)})
-
-def listar_habitaciones(request):
-    zona = request.GET.get('zona')
-    if not zona:
-        return JsonResponse({"error": "Zona no especificada"}, status=400)
-
-    habitaciones = Habitacion.objects.filter(zona=zona)
-
-    data = []
-    for h in habitaciones:
-        # Verificar si todas las literas están ocupadas (estado=False)
-        todas_ocupadas = not h.literas.filter(estado=True).exists()
-
-        data.append({
-            "nomenclatura": h.nomenclatura,
-            "zona": h.zona,
-            "ocupada": todas_ocupadas  # Usamos estado como referencia
-        })
-
-    return JsonResponse({"habitaciones": data})
-
-def obtener_habitaciones_por_zona(request, zona):
-    habitaciones = Habitacion.objects.filter(zona=zona)
-    data = []
-
-    for hab in habitaciones:
-        literas_data = []
-        disponibles = 0
-
-        # Filtramos literas activas primero
-        literas_activas = hab.literas.filter(estado=True).order_by("codigo")
-
-        for lit in literas_activas:
-            ocupante = lit.ocupantes.first()
-            esta_ocupada = ocupante is not None
-
-            if not esta_ocupada:
-                disponibles += 1
-
-            literas_data.append({
-                "codigo": lit.codigo,
-                "ocupada": esta_ocupada,
-                "usuario": {
-                    "nombre": ocupante.nombre,
-                    "apellido": ocupante.apellido,
-                    "documento": ocupante.n_documento
-                } if ocupante else None,
-                "llegada": ocupante.llegada.strftime("%Y-%m-%d") if ocupante and ocupante.llegada else None,
-                "salida": ocupante.salida.strftime("%Y-%m-%d") if ocupante and ocupante.salida else None
-            })
-
-        # Si no hay disponibles, marcamos la habitación como no disponible
-        hab.estado = disponibles > 0
-        hab.save(update_fields=["estado"])
-
-        data.append({
-            "nomenclatura": hab.nomenclatura,
-            "estado": 1 if hab.estado else 0,
-            "tamaño": hab.tamaño,
-            "desactivada": hab.desactivada,
-            "disponibles": disponibles,
-            "literas": literas_data
-        })
-
-    return JsonResponse({"habitaciones": data})
