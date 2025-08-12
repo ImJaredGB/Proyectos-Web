@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-sc9oi=i40362$dl1fu((h38@=ys@v2kjgmx++irqk+%8daxs(m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -76,11 +76,11 @@ WSGI_APPLICATION = 'project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'lobbydata',
+        'NAME': 'railway',
         'USER': 'root',
-        'PASSWORD': 'nllyd2003!',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'PASSWORD': 'zXEmlwZwJkUDLSwNkchEGmletUwcyZjW',
+        'HOST': 'turntable.proxy.rlwy.net',
+        'PORT': '19113',
     }
 }
 
